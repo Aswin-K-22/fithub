@@ -1,0 +1,7 @@
+
+node_modules/
+*.log
+.env
+dist/
+backend/prisma/migrations/
+frontend/vite.config.ts.timestamp-*

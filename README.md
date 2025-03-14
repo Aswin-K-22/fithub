@@ -10,3 +10,5 @@ A fitness platform to book gyms, chat with trainers, and get AI workout plans.
 - Frontend: React + Vite, TypeScript, Tailwind CSS
 - Backend: Node.js, Express.js
 - Database: MongoDB
+# fithub
+A MERN stack fitness platform (ongoing)

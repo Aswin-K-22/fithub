@@ -26,6 +26,7 @@ const Navbar: React.FC = () => {
             <div className="hidden sm:flex sm:ml-8 sm:space-x-6">
               <a
                 href="#"
+                onClick={()=>{navigate('/')}}
                 className="border-blue-500 text-blue-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               >
                 Home

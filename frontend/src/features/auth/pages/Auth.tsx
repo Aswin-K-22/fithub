@@ -5,6 +5,9 @@ import { login } from "../../../lib/redux/slices/authSlice";
 import { login as loginApi, signup as signupApi } from "../../../lib/api/authApi";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
+import { toast } from "react-toastify";
+import { GoogleLogin } from "@react-oauth/google";
+
 
 const Auth: React.FC = () => {
   const location = useLocation();
@@ -95,31 +98,67 @@ const Auth: React.FC = () => {
 
   const handleLoginSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateLogin()) return;
+    if (!validateLogin()) {
+        toast.error("Please fix form errors", { position: "top-right" });
+        return;
+      }
 
     try {
       const response = await loginApi(loginData.email, loginData.password);
       dispatch(login({ email: response.email, name: response.name }));
+      toast.success("Login successful!", { position: "top-right" });
       navigate("/");
     } catch (error) {
-      setErrors((prev) => ({ ...prev, email: "Login failed—check credentials" }));
-      console.error("Login failed:", error);
+        toast.error(error.response?.data?.message || "Login failed—check credentials", {
+            position: "top-right",
+          });
+          console.error("Login failed:", error);
     }
   };
 
   const handleSignupSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateSignup()) return;
+    if (!validateSignup()) {
+        toast.error("Please fix form errors", { position: "top-right" });
+        return;
+      }
 
-    try {
-      const response = await signupApi(signupData.name, signupData.email, signupData.password);
-      dispatch(login({ email: response.email, name: response.name })); // Auto-login after signup
-      navigate("/");
-    } catch (error) {
-      setErrors((prev) => ({ ...prev, email: "Signup failed—email may exist" }));
-      console.error("Signup failed:", error);
+      try {
+        const response = await signupApi(signupData.name, signupData.email, signupData.password);
+        dispatch(login({ email: response.email, name: response.name })); // Auto-login
+        toast.success("Signup successful!", { position: "top-right" });
+        navigate("/");
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || "Signup failed—email may exist", {
+          position: "top-right",
+        });
+        console.error("Signup failed:", error);
     }
   };
+
+
+// Google Login/Signup
+const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+      const data = await response.json();
+      dispatch(login({ email: data.email, name: data.name }));
+      toast.success("Logged in with Google!", { position: "top-right" });
+      navigate("/");
+    } catch (error) {
+      toast.error("Google auth failed", { position: "top-right" });
+      console.error("Google auth failed:", error);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast.error("Google login failed", { position: "top-right" });
+  };
+
 
   return (
     <div className="font-inter bg-gray-50">
@@ -307,9 +346,14 @@ const Auth: React.FC = () => {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <button className="flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-blue-600 transition-all duration-200">
-                <i className="fab fa-google text-xl"></i>
-              </button>
+              <div className="col-span-3 flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  text="continue_with" 
+                  width="300" 
+                />
+              </div>
               <button className="flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-blue-600 transition-all duration-200">
                 <i className="fab fa-facebook-f text-xl"></i>
               </button>

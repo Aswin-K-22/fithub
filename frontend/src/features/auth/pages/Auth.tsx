@@ -1,13 +1,21 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { login } from "../../../lib/redux/slices/authSlice";
-import { login as loginApi } from "../../../lib/api/authApi"; 
+import { login as loginApi, signup as signupApi } from "../../../lib/api/authApi";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 
 const Auth: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true); // Toggle between login/signup
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const [isLogin, setIsLogin] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("type") !== "signup"; 
+  });
+
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
     name: "",
@@ -15,47 +23,108 @@ const Auth: React.FC = () => {
     password: "",
     confirmPassword: "",
   });
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const [errors, setErrors] = useState({ email: "", password: "", confirmPassword: "", name: "" });
 
-  // Handle input changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setIsLogin(params.get("type") !== "signup");
+  }, [location.search]);
+
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" })); 
   };
 
   const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSignupData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Handle form submissions
+  const validateLogin = () => {
+    let valid = true;
+    const newErrors = { email: "", password: "", confirmPassword: "", name: "" };
+
+    if (!loginData.email) {
+      newErrors.email = "Email is required";
+      valid = false;
+    } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(loginData.email)) {
+      newErrors.email = "Email is invalid";
+      valid = false;
+    }
+    if (!loginData.password || loginData.password.length < 6) {
+      newErrors.password = "valid Password is required";
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
+  const validateSignup = () => {
+    let valid = true;
+    const newErrors = { email: "", password: "", confirmPassword: "", name: "" };
+
+    if (!signupData.name) {
+      newErrors.name = "Full name is required";
+      valid = false;
+    }
+    if (!signupData.email) {
+      newErrors.email = "Email is required";
+      valid = false;
+    } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(signupData.email)) {
+      newErrors.email = "Email is invalid";
+      valid = false;
+    }
+    if (!signupData.password) {
+      newErrors.password = "Password is required";
+      valid = false;
+    } else if (signupData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+      valid = false;
+    }
+    if (signupData.password !== signupData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords don’t match";
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
   const handleLoginSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!validateLogin()) return;
+
     try {
       const response = await loginApi(loginData.email, loginData.password);
-      dispatch(login({ email: response.email, name: response.name })); // Update Redux
-      navigate("/"); // Back to landing page
+      dispatch(login({ email: response.email, name: response.name }));
+      navigate("/");
     } catch (error) {
+      setErrors((prev) => ({ ...prev, email: "Login failed—check credentials" }));
       console.error("Login failed:", error);
     }
   };
 
-  const handleSignupSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSignupSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (signupData.password !== signupData.confirmPassword) {
-      alert("Passwords don’t match!");
-      return;
+    if (!validateSignup()) return;
+
+    try {
+      const response = await signupApi(signupData.name, signupData.email, signupData.password);
+      dispatch(login({ email: response.email, name: response.name })); // Auto-login after signup
+      navigate("/");
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, email: "Signup failed—email may exist" }));
+      console.error("Signup failed:", error);
     }
-    console.log("Signup:", signupData); // Replace with backend API call later
-    navigate("/auth"); // Stay on auth, switch to login
-    setIsLogin(true);
   };
 
   return (
     <div className="font-inter bg-gray-50">
       <Navbar />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-900 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-900 p-6 pt-16">
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-300">
           <div className="flex items-center justify-center p-6 border-b border-gray-200">
             <img
@@ -65,7 +134,7 @@ const Auth: React.FC = () => {
             />
           </div>
           <div className="p-8">
-            {/* Toggle Buttons */}
+            {/* toggle Buttons */}
             <div className="flex justify-center space-x-4 mb-6">
               <button
                 className={`px-6 py-2 font-medium transition-all duration-300 ${
@@ -73,7 +142,7 @@ const Auth: React.FC = () => {
                     ? "border-b-2 border-blue-600 text-blue-600"
                     : "text-gray-500 hover:text-blue-600 hover:border-b-2 hover:border-blue-600"
                 }`}
-                onClick={() => setIsLogin(true)}
+                onClick={() => navigate("/auth?type=login")}
               >
                 Login
               </button>
@@ -83,13 +152,13 @@ const Auth: React.FC = () => {
                     ? "border-b-2 border-blue-600 text-blue-600"
                     : "text-gray-500 hover:text-blue-600 hover:border-b-2 hover:border-blue-600"
                 }`}
-                onClick={() => setIsLogin(false)}
+                onClick={() => navigate("/auth?type=signup")}
               >
                 Sign Up
               </button>
             </div>
 
-            {/* Login Form */}
+            {/* login Form */}
             {isLogin ? (
               <form className="space-y-6" onSubmit={handleLoginSubmit}>
                 <div>
@@ -104,6 +173,7 @@ const Auth: React.FC = () => {
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your email"
                   />
+                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -125,6 +195,7 @@ const Auth: React.FC = () => {
                   <div className="h-1 w-full bg-gray-200 mt-2 rounded">
                     <div className="h-1 bg-green-500 rounded" style={{ width: "70%" }}></div>
                   </div>
+                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                 </div>
                 <div className="flex items-center justify-between">
                   <label className="flex items-center">
@@ -163,6 +234,7 @@ const Auth: React.FC = () => {
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your full name"
                   />
+                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -176,6 +248,7 @@ const Auth: React.FC = () => {
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your email"
                   />
+                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -197,6 +270,7 @@ const Auth: React.FC = () => {
                   <div className="h-1 w-full bg-gray-200 mt-2 rounded">
                     <div className="h-1 bg-green-500 rounded" style={{ width: "70%" }}></div>
                   </div>
+                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -210,6 +284,9 @@ const Auth: React.FC = () => {
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="Confirm password"
                   />
+                  {errors.confirmPassword && (
+                    <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+                  )}
                 </div>
                 <button
                   type="submit"

@@ -1,6 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
-const Hero: React.FC = () => (
+const Hero: React.FC = () => {
+  const navigate = useNavigate();
+  return(
   <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
     <div className="absolute inset-0">
       <img
@@ -19,12 +22,15 @@ const Hero: React.FC = () => (
         AI-Powered Training | Human Trainers | Flexible Gym Access
       </p>
       <div className="mt-10">
-        <button className="rounded-md bg-blue-500 text-white px-8 py-3 text-base font-medium hover:bg-blue-700">
-          Get Started for Free
-        </button>
+      <button
+  onClick={() => navigate("/auth?type=signup")}
+  className="rounded-md bg-blue-500 text-white px-8 py-3 text-base font-medium hover:bg-blue-700"
+>
+  Get Started for Free
+</button>
       </div>
     </div>
   </section>
-);
+)};
 
 export default Hero;

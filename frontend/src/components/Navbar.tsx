@@ -110,12 +110,13 @@ const Navbar: React.FC = () => {
                 <button
                   type="button"
                   className="rounded-md bg-white text-gray-600 px-4 py-2 text-sm font-medium border border-gray-300 hover:bg-gray-50"
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/auth?type=login")}
                 >
                   Sign In
                 </button>
                 <button
                   type="button"
+                  onClick={() => navigate("/auth?type=signup")}
                   className="rounded-md bg-blue-500 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700"
                 >
                   Register

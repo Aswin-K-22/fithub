@@ -1,13 +1,15 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate ,useLocation} from "react-router-dom";
 import { RootState } from "../lib/redux/store";
 import { logout } from "../lib/redux/slices/authSlice";
 
 const Navbar: React.FC = () => {
-  const { isLoggedIn, user } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthPage = location.pathname === "/auth";
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100">
@@ -61,7 +63,7 @@ const Navbar: React.FC = () => {
             </div>
           </div>
           <div className="hidden sm:flex sm:items-center sm:space-x-4">
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <div className="flex items-center space-x-6">
                 <button type="button" className="relative text-gray-600 hover:text-gray-900">
                   <i className="fas fa-bell text-xl"></i>
@@ -103,7 +105,7 @@ const Navbar: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : !isAuthPage ? (
               <>
                 <button
                   type="button"
@@ -119,7 +121,7 @@ const Navbar: React.FC = () => {
                   Register
                 </button>
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

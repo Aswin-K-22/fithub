@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LandingPage from "./features/landing/pages/LandingPage";
-import Login from "./features/auth/pages/Login";
+import Auth from "./features/auth/pages/Auth";
 
 
 
@@ -12,7 +12,7 @@ const App: React.FC = () => (
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/auth" element={<Auth />} />
         </Routes>
       </ErrorBoundary>
     </Router>

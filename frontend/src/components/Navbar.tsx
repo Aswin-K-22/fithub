@@ -1,11 +1,13 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { RootState } from "../lib/redux/store";
 import { logout } from "../lib/redux/slices/authSlice";
 
 const Navbar: React.FC = () => {
   const { isLoggedIn, user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100">
@@ -106,6 +108,7 @@ const Navbar: React.FC = () => {
                 <button
                   type="button"
                   className="rounded-md bg-white text-gray-600 px-4 py-2 text-sm font-medium border border-gray-300 hover:bg-gray-50"
+                  onClick={() => navigate("/login")}
                 >
                   Sign In
                 </button>

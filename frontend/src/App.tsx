@@ -4,6 +4,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import LandingPage from "./features/landing/pages/LandingPage";
 import Login from "./features/auth/pages/Login";
 
+
+
 const App: React.FC = () => (
   <div className="min-h-screen bg-gray-100">
     <Router>

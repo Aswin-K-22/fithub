@@ -1,6 +1,7 @@
-import { useState ,FormEvent} from "react";
-import { login } from "../../adapters/authApi";
-import { AxiosError } from "axios";
+import React, { useState, FormEvent } from "react";
+import { useDispatch } from "react-redux";
+import { login } from "../../../lib/redux/slices/authSlice";
+import { login as loginApi } from "../../lib/api/authApi";
 
 interface LoginForm {
   email: string;
@@ -13,37 +14,40 @@ interface Errors {
   general?: string;
 }
 
-const Login = () => {
+const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginForm>({ email: "", password: "" });
   const [errors, setErrors] = useState<Errors>({});
+  const dispatch = useDispatch();
 
-  const handleInputChange = (e : React.ChangeEvent<HTMLInputElement>)=>{
-    const {name , value} = e.target;
-    setFormData((prev) => ({...prev , [name] : value}))
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
-  }
-  const validateForm = ():boolean =>{
+  };
+
+  const validateForm = (): boolean => {
     const newErrors: Errors = {};
-    if(!formData.email || ! /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(formData.email)){
-      newErrors.email = "Please enter a valid email address"
+    if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email";
     }
-    if(!formData.password || formData.password.length < 6){
-      newErrors.password = "Password must be at least 6 characters long"
+    if (!formData.password || formData.password.length < 6) {
+      newErrors.password = "Password must be 6+ characters";
     }
-    setErrors(newErrors)
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e:FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if(!validateForm()) return;
+    if (!validateForm()) return;
 
     try {
-      const data = await login(formData.email, formData.password);
+      const data = await loginApi(formData.email, formData.password);
+      dispatch(login({ name: data.name, email: formData.email })); // Update Redux state
       console.log("Logged in!", data);
-    } catch (err : unknown) {
-      if (err instanceof AxiosError) {
-        setErrors({ general: err.response?.data?.message || "Login failed" });
+    } catch (err) {
+      if (err instanceof Error) {
+        setErrors({ general: "Login failed" });
       } else {
         setErrors({ general: "An unexpected error occurred" });
       }

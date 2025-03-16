@@ -1,3 +1,7 @@
 import { httpServer } from "./frameworks/server";
+import dotenv from "dotenv";
 
-httpServer.listen(3000, () => console.log("Server running on port 3000"));
+dotenv.config();
+const PORT = process.env.PORT || 5000;
+
+httpServer.listen( PORT, () => console.log("Server running on port 3000"));

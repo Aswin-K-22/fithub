@@ -1,14 +1,30 @@
-import React, { useState, FormEvent, useEffect } from "react";
+import React, { useState, FormEvent, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { login } from "../../../lib/redux/slices/authSlice";
-import { login as loginApi, signup as signupApi } from "../../../lib/api/authApi";
+import {login as loginApi, signup as signupApi, googleAuth } from "../../../lib/api/authApi";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import { toast } from "react-toastify";
-import { GoogleLogin } from "@react-oauth/google";
+import { AxiosError } from "axios";
 
 
+
+interface GoogleWindow extends Window {
+    google?: {
+      accounts: {
+        oauth2: {
+          initTokenClient: (config: {
+            client_id: string;
+            scope: string;
+            callback: (response: { access_token: string }) => void;
+          }) => { requestAccessToken: () => void };
+        };
+      };
+    };
+  }
+
+  
 const Auth: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,6 +34,8 @@ const Auth: React.FC = () => {
     const params = new URLSearchParams(location.search);
     return params.get("type") !== "signup"; 
   });
+
+
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
@@ -32,6 +50,9 @@ const Auth: React.FC = () => {
     const params = new URLSearchParams(location.search);
     setIsLogin(params.get("type") !== "signup");
   }, [location.search]);
+
+  
+
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -109,55 +130,68 @@ const Auth: React.FC = () => {
       toast.success("Login successful!", { position: "top-right" });
       navigate("/");
     } catch (error) {
-        toast.error(error.response?.data?.message || "Login failed—check credentials", {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        toast.error(axiosError.response?.data?.message || "Login failed—check credentials" ,{
             position: "top-right",
           });
-          console.error("Login failed:", error);
+          console.error("Login failed:", axiosError);
     }
   };
 
   const handleSignupSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateSignup()) {
-        toast.error("Please fix form errors", { position: "top-right" });
-        return;
-      }
+      toast.error("Please fix form errors");
+      return;
+    }
 
-      try {
-        const response = await signupApi(signupData.name, signupData.email, signupData.password);
-        dispatch(login({ email: response.email, name: response.name })); // Auto-login
-        toast.success("Signup successful!", { position: "top-right" });
-        navigate("/");
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || "Signup failed—email may exist", {
-          position: "top-right",
-        });
-        console.error("Signup failed:", error);
+    try {
+      await signupApi(signupData.name, signupData.email, signupData.password);
+      toast.success("OTP sent to your email!");
+      navigate("/verify-otp", { state: { email: signupData.email } }); 
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      toast.error(axiosError.response?.data?.message || "Failed to send OTP");
+      console.error("Signup OTP failed:", axiosError);
     }
   };
 
 
 // Google Login/Signup
-const handleGoogleSuccess = async (credentialResponse: any) => {
+const handleGoogleSuccess = async (token: string) => {
     try {
-      const response = await fetch("http://localhost:3000/api/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: credentialResponse.credential }),
-      });
-      const data = await response.json();
-      dispatch(login({ email: data.email, name: data.name }));
-      toast.success("Logged in with Google!", { position: "top-right" });
-      navigate("/");
+        const response = await googleAuth(token);
+        dispatch(login({ email: response.email, name: response.name }));
+        toast.success("Logged in with Google!" ,{ position: "top-right" });
+        navigate("/")
     } catch (error) {
-      toast.error("Google auth failed", { position: "top-right" });
-      console.error("Google auth failed:", error);
+        const axiosError = error as AxiosError<{ message?: string }>;
+        toast.error(axiosError.response?.data?.message || "Google auth failed" ,{ position: "top-right" });
+        console.error("Google auth failed:", axiosError);
     }
   };
 
-  const handleGoogleError = () => {
-    toast.error("Google login failed", { position: "top-right" });
-  };
+
+
+  const handleGoogleLogin = useCallback(() => {
+    const googleWindow = window as GoogleWindow;
+    const google = googleWindow.google ;
+    if (google) {
+      google.accounts.oauth2
+        .initTokenClient({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          scope: "email profile",
+          callback: (response: { access_token: string }) => {
+            if (response.access_token) {
+              handleGoogleSuccess(response.access_token);
+            } else {
+              toast.error("Google login failed");
+            }
+          },
+        })
+        .requestAccessToken();
+    }
+  }, [handleGoogleSuccess]);
 
 
   return (
@@ -346,14 +380,12 @@ const handleGoogleSuccess = async (credentialResponse: any) => {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-3 flex justify-center">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  text="continue_with" 
-                  width="300" 
-                />
-              </div>
+            <button
+                onClick={handleGoogleLogin}
+                className="flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-blue-600 transition-all duration-200"
+              >
+                <i className="fab fa-google text-xl"></i>
+              </button>
               <button className="flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-blue-600 transition-all duration-200">
                 <i className="fab fa-facebook-f text-xl"></i>
               </button>

@@ -158,40 +158,38 @@ const Auth: React.FC = () => {
 
 
 // Google Login/Signup
-const handleGoogleSuccess = async (token: string) => {
+const handleGoogleLogin = useCallback(() => {
+  const handleGoogleSuccess = async (token: string) => {
     try {
-        const response = await googleAuth(token);
-        dispatch(login({ email: response.email, name: response.name }));
-        toast.success("Logged in with Google!" ,{ position: "top-right" });
-        navigate("/")
+      const response = await googleAuth(token);
+      dispatch(login({ email: response.email, name: response.name }));
+      toast.success("Logged in with Google!");
+      navigate("/");
     } catch (error) {
-        const axiosError = error as AxiosError<{ message?: string }>;
-        toast.error(axiosError.response?.data?.message || "Google auth failed" ,{ position: "top-right" });
-        console.error("Google auth failed:", axiosError);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      toast.error(axiosError.response?.data?.message || "Google auth failed");
+      console.error("Google auth failed:", axiosError);
     }
   };
 
-
-
-  const handleGoogleLogin = useCallback(() => {
-    const googleWindow = window as GoogleWindow;
-    const google = googleWindow.google ;
-    if (google) {
-      google.accounts.oauth2
-        .initTokenClient({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          scope: "email profile",
-          callback: (response: { access_token: string }) => {
-            if (response.access_token) {
-              handleGoogleSuccess(response.access_token);
-            } else {
-              toast.error("Google login failed");
-            }
-          },
-        })
-        .requestAccessToken();
-    }
-  }, [handleGoogleSuccess]);
+  const googleWindow = window as GoogleWindow;
+  const google = googleWindow.google;
+  if (google) {
+    google.accounts.oauth2
+      .initTokenClient({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        scope: "email profile",
+        callback: (response: { access_token: string }) => {
+          if (response.access_token) {
+            handleGoogleSuccess(response.access_token);
+          } else {
+            toast.error("Google login failed");
+          }
+        },
+      })
+      .requestAccessToken();
+  }
+}, [dispatch, navigate]);
 
 
   return (

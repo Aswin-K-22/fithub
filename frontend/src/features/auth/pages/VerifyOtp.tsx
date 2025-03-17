@@ -16,7 +16,7 @@ const VerifyOtp: React.FC = () => {
   const { email, purpose = "signup" } = location.state || {};
 
   const [otp, setOtp] = useState("");
-  const [timeLeft, setTimeLeft] = useState(120); 
+  const [timeLeft, setTimeLeft] = useState(30); 
   const [canResend, setCanResend] = useState(false);
   const [errors, setErrors] = useState({ otp: "" });
 
@@ -73,7 +73,7 @@ const VerifyOtp: React.FC = () => {
       
         await resendOtp(email);
       toast.success("OTP resent to your email!");
-      setTimeLeft(120);
+      setTimeLeft(30);
       setCanResend(false);
       setOtp("");
       setErrors({ otp: "" });

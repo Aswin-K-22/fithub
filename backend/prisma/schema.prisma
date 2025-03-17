@@ -17,4 +17,6 @@ model User {
   updatedAt DateTime @updatedAt
   otp        String?
   otpExpires DateTime?
+  isVerified Boolean   @default(false)
+  refreshToken String?
 }

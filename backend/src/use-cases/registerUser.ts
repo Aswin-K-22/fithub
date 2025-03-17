@@ -6,16 +6,19 @@ export class RegisterUser {
   constructor(private userRepo: UserRepository) {}
 
   async execute(name: string, email: string, password: string): Promise<User> {
-    const existingUser = await this.userRepo.findByEmail(email);
-    if (existingUser) throw new Error("Email already exists");
+    console.log("RegisterUser execute started:", { name, email });
+
+  
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await this.userRepo.create({
       email,
       password: hashedPassword,
       name,
-      role: "user", // Default role
+      role: "user", 
+      isVerified: false,
     });
+    console.log("User created:", user);
 
     return user;
   }

@@ -1,10 +1,11 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import morgan from "morgan";
 import { signup, login  , verifyOtp ,logout, refreshToken ,resendOtp , getUser ,googleAuth} from "../adapters/controllers/authController";
 import cookieParser from 'cookie-parser'
+import { authMiddleware } from "../adapters/middleware/authMiddleware";
 
 
 const app = express();
@@ -33,15 +34,26 @@ app.use(express.json());
 
 
 // Routes
+
+
+// Routes (without authentication)
 app.post("/api/auth/signup", signup);
 app.post("/api/auth/login", login);
-app.post('/api/auth/verify-otp' ,verifyOtp)
-app.post("/api/auth/logout", logout);
-app.post("/api/auth/refresh-token", refreshToken);
-app.post("/api/auth/resend-otp", resendOtp);
-app.get("/api/auth/user", getUser);
+app.post("/api/auth/verify-otp", verifyOtp);
 app.post("/api/auth/google", googleAuth);
+app.post("/api/auth/resend-otp", resendOtp);
 
+// Protected Routes (require auth)
+app.post("/api/auth/logout", authMiddleware, logout);
+app.post("/api/auth/refresh-token", authMiddleware, refreshToken); 
+app.get("/api/auth/user", authMiddleware, getUser);
+
+
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error("Global error:", err.stack);
+  res.status(500).json({ message: "Something went wrong on the server", error: err.message });
+  next();
+});
 
 
   io.on("connection", (socket) => {

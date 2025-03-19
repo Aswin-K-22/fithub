@@ -179,11 +179,14 @@ const transporter = nodemailer.createTransport({
   export const logout = async (req: Request, res: Response) => {
     console.log("Logout route called");
     try {
-      const email = req.body.email; 
-      if (email) await userRepo.updateRefreshToken(email, null);
+      const email = req.user?.email; 
+      if (!email) {
+          res.status(400).json({ message: "User email not found" });
+          return 
+        }
+      await userRepo.updateRefreshToken(email, null);
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");
-
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
       console.error("Logout error:", error);
@@ -294,31 +297,22 @@ const transporter = nodemailer.createTransport({
 
   export const getUser = async (req: Request, res: Response) => {
     try {
-      const accessToken = req.cookies?.accessToken; 
-      console.log("Access Token value =(getUser)", accessToken ? accessToken.slice(5) : "it is undefined");
-      
-      
-      if (!accessToken) {
-        console.log("No access token provided");
-        
-         res.status(401).json({ message: "No access token provided" });
+      const email = req.user?.email; // CHANGE: Use req.user from middleware
+      if (!email) {
+         res.status(401).json({ message: "User not authenticated" });
          return 
-      }
-  
-      const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET || "access_secret") as { email: string; id: string };
-      const user = await userRepo.findByEmail(decoded.email);
+        }
+      const user = await userRepo.findByEmail(email);
       if (!user) {
-         res.status(401).json({ message: "User not found" });
-         return 
+        res.status(404).json({ message: "User not found" });
+        return 
       }
-  
-      res.status(200).json({ user: {  id : user.id ,email: user.email, name: user.name } });
+      res.status(200).json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
       console.error("Get me error:", error);
       res.status(500).json({ message: "Invalid token" });
     }
-  };
-
+  }
 
   export const googleAuth = async (req: Request, res: Response) => {
     try {
@@ -330,7 +324,7 @@ const transporter = nodemailer.createTransport({
   
       const { tokens } = await client.getToken({
         code,
-        redirect_uri: process.env.GOOGLE_CALLBACK_URL, // http://localhost:5173/auth/google/callback
+        redirect_uri: process.env.GOOGLE_CALLBACK_URL, 
       });
       console.log("Tokens received from Google:", tokens);
   
@@ -341,11 +335,11 @@ const transporter = nodemailer.createTransport({
       console.log("GOOGLE_CLIENT_ID from env:", process.env.GOOGLE_CLIENT_ID);
       const ticket : LoginTicket= await client.verifyIdToken({
         idToken: tokens.id_token,
-        audience: process.env.GOOGLE_CLIENT_ID, // Must match 67722388172-fg8vtcivjess3ta82nmv5pnv79rdj6um.apps.googleusercontent.com
+        audience: process.env.GOOGLE_CLIENT_ID, 
       });
   
       const payload = ticket.getPayload();
-      console.log("Token payload:", payload); // For debugging
+      console.log("Token payload:", payload); 
       if (!payload || !payload.email) {
         res.status(400).json({ message: "Invalid Google token: Email is missing" });
         return;
@@ -353,7 +347,7 @@ const transporter = nodemailer.createTransport({
   
       let user = await userRepo.findByEmail(payload.email);
       if (!user) {
-        user = await registerUser.execute(payload.name || "Google User", payload.email, "");
+        user = await registerUser.execute(payload.name || "Google User", payload.email, "" ,true);
       }
   
       const accessToken = generateAccessToken({ email: user.email, id: user.id });

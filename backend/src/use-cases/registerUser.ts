@@ -5,7 +5,7 @@ import * as bcrypt from "bcrypt";
 export class RegisterUser {
   constructor(private userRepo: UserRepository) {}
 
-  async execute(name: string, email: string, password: string): Promise<User> {
+  async execute(name: string, email: string, password: string ,isVerified : boolean = false): Promise<User> {
     console.log("RegisterUser execute started:", { name, email });
 
   
@@ -16,7 +16,7 @@ export class RegisterUser {
       password: hashedPassword,
       name,
       role: "user", 
-      isVerified: false,
+      isVerified,
     });
     console.log("User created:", user);
 

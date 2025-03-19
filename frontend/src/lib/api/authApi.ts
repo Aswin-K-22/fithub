@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Main client with interceptor for most requests
 const apiClient = axios.create({
   baseURL: "/api",
   withCredentials: true,
@@ -9,7 +8,6 @@ const apiClient = axios.create({
   },
 });
 
-// Separate client for refresh token without interceptor
 const refreshClient = axios.create({
   baseURL: "/api",
   withCredentials: true,
@@ -18,7 +16,8 @@ const refreshClient = axios.create({
   },
 });
 
-// Add interceptor to apiClient only
+
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -28,8 +27,8 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        await refreshClient.post("/auth/refresh-token"); // Use refreshClient here
-        return apiClient(originalRequest); // Retry original request
+        await refreshClient.post("/auth/refresh-token"); 
+        return apiClient(originalRequest); 
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError);
         return Promise.reject(refreshError);

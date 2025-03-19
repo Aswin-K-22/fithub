@@ -73,7 +73,7 @@ const Auth: React.FC = () => {
       console.log("No code found in URL:", location.search);
     }
     
-  }, [location.search ]);
+  }, [location.search, location.pathname,handleGoogleCallback ]);
 
   
 

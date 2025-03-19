@@ -297,7 +297,7 @@ const transporter = nodemailer.createTransport({
 
   export const getUser = async (req: Request, res: Response) => {
     try {
-      const email = req.user?.email; // CHANGE: Use req.user from middleware
+      const email = req.user?.email;
       if (!email) {
          res.status(401).json({ message: "User not authenticated" });
          return 

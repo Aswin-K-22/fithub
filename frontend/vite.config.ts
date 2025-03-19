@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
 
-export default ({ mode }) => {
+export default ({ mode }:{mode:string}) => {
   const env = loadEnv(mode, process.cwd());
 
   return defineConfig({
@@ -9,7 +9,7 @@ export default ({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_API_BASE_URL || 'http://localhost:5000', // Fallback for safety
+          target: env.VITE_API_BASE_URL ,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
           configure: (proxy) => {

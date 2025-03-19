@@ -54,7 +54,7 @@ const VerifyOtp: React.FC = () => {
     try {
       const response = await verifyOtp(email, otp);
       if (purpose === "signup") {
-      dispatch(login({ email: response.email, name: response.name }));
+      dispatch(login({ user: response.user, }));
       toast.success("Verification successful!");
       navigate("/");
     } else {
@@ -115,13 +115,17 @@ const VerifyOtp: React.FC = () => {
                   value={otp}
                   onChange={setOtp}
                   numInputs={6}
-                  renderSeparator={<span>-</span>}
-                  renderInput={(props) => (
+                  renderInput={(props, index) => (
+                    // CHANGE: Added mr-2 to all but last input for gap
                     <input
                       {...props}
-                      className="h-14 w-full rounded border border-gray-300 text-center text-xl font-semibold focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className={`w-12 h-12 min-w-0 text-center text-xl font-semibold border border-gray-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 ${
+                        index < 5 ? "mr-2" : ""
+                      }`}
+                      style={{ width: "48px" }}
                     />
                   )}
+                  containerStyle="flex justify-between w-full"
                 />
               </div>
               {errors.otp && <p className="text-red-500 text-sm mt-1 text-center">{errors.otp}</p>}

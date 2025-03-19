@@ -20,9 +20,11 @@
     "@types/nodemailer": "^6.4.17",
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "nodemailer": "^6.10.0",
@@ -32,6 +34,7 @@
     "typescript": "^5.8.2"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2"
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.8"
   }
 }

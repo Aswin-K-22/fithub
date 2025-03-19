@@ -3,7 +3,7 @@ import { User } from "../entities/user";
 
 export interface UserRepository {
   findByEmail(email: string): Promise<User | null>;
-  create(data: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User>;
+  create(data: Omit<User,  'id'| "createdAt" | "updatedAt">): Promise<User>;
   updateOtp(email: string, otp: string): Promise<void>;
   verifyUser(email: string): Promise<void>;
   updateRefreshToken(email: string, refreshToken: string | null): Promise<void>;
@@ -21,7 +21,7 @@ export class MongoUserRepository implements UserRepository {
   async findByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { email } });
   }
-  async create(data: Omit<User, "id" | "createdAt" | "updatedAt" >): Promise<User> {
+  async create(data: Omit<User,  'id' | "createdAt" | "updatedAt" >): Promise<User> {
     return this.prisma.user.create({ data });
   }
 
@@ -44,9 +44,14 @@ export class MongoUserRepository implements UserRepository {
   }
 
   async updateRefreshToken(email: string, refreshToken: string | null): Promise<void> {
-    await this.prisma.user.update({
-      where: { email },
-      data: { refreshToken },
-    });
+    try {
+      const updatedUser = await this.prisma.user.update({
+        where: { email },
+        data: { refreshToken },
+      });
+      console.log("Updated User:", updatedUser);
+    } catch (error) {
+      console.error("Error updating refresh token:", error);
+    }
   }
 }

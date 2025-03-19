@@ -7,26 +7,25 @@ import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
-
-
+import { Location } from "react-router-dom";
 
 interface GoogleWindow extends Window {
-    google?: {
-      accounts: {
-        oauth2: {
-          initTokenClient: (config: {
-            client_id: string;
-            scope: string;
-            callback: (response: { access_token: string }) => void;
-          }) => { requestAccessToken: () => void };
-        };
+  google?: {
+    accounts: {
+      oauth2: {
+        initCodeClient: (config: {
+          client_id: string;
+          scope: string;
+          ux_mode: string;
+          redirect_uri: string;
+        }) => { requestCode: () => void };
       };
     };
-  }
+  };
+}
 
-  
 const Auth: React.FC = () => {
-  const location = useLocation();
+  const location = useLocation() as Location;
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -46,10 +45,35 @@ const Auth: React.FC = () => {
   });
   const [errors, setErrors] = useState({ email: "", password: "", confirmPassword: "", name: "" });
 
+  const handleGoogleCallback = useCallback(async (code: string) => {
+    console.log("Handling Google callback with code:", code);
+    try {
+      const response = await googleAuth(code);
+      console.log("Backend response:", response);
+      dispatch(login({ user: response.user }));
+      toast.success("Logged in with Google!");
+      navigate("/");
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      console.error("Google auth failed:", axiosError);
+      toast.error(axiosError.response?.data?.message || "Google auth failed");
+      navigate("/auth?type=login");
+    }
+  }, [dispatch, navigate]);
+  
+  
   useEffect(() => {
+    console.log("useEffect triggered with location:", location.pathname, location.search); 
     const params = new URLSearchParams(location.search);
     setIsLogin(params.get("type") !== "signup");
-  }, [location.search]);
+    const code = params.get("code");
+    if (code) {
+      console.log("Received code:", code);
+      handleGoogleCallback(code);
+      console.log("No code found in URL:", location.search);
+    }
+    
+  }, [location.search ]);
 
   
 
@@ -126,7 +150,7 @@ const Auth: React.FC = () => {
 
     try {
       const response = await loginApi(loginData.email, loginData.password);
-      dispatch(login({ email: response.email, name: response.name }));
+      dispatch(login({ user: response.user }));
       toast.success("Login successful!", { position: "top-right" });
       navigate("/");
     } catch (error) {
@@ -157,39 +181,28 @@ const Auth: React.FC = () => {
   };
 
 
-// Google Login/Signup
-const handleGoogleLogin = useCallback(() => {
-  const handleGoogleSuccess = async (token: string) => {
-    try {
-      const response = await googleAuth(token);
-      dispatch(login({ email: response.email, name: response.name }));
-      toast.success("Logged in with Google!");
-      navigate("/");
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-      toast.error(axiosError.response?.data?.message || "Google auth failed");
-      console.error("Google auth failed:", axiosError);
-    }
-  };
 
+// Google Login/Signup
+
+const handleGoogleLogin = useCallback(() => {
+  console.log("Google login initiated");
   const googleWindow = window as GoogleWindow;
   const google = googleWindow.google;
   if (google) {
     google.accounts.oauth2
-      .initTokenClient({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      .initCodeClient({
+        client_id:import.meta.env.VITE_GOOGLE_CLIENT_ID,
         scope: "email profile",
-        callback: (response: { access_token: string }) => {
-          if (response.access_token) {
-            handleGoogleSuccess(response.access_token);
-          } else {
-            toast.error("Google login failed");
-          }
-        },
+        ux_mode: "redirect", 
+        redirect_uri: import.meta.env.VITE_GOOGLE_CALLBACK,
+        
       })
-      .requestAccessToken();
-  }
-}, [dispatch, navigate]);
+      .requestCode();
+    } else {
+      console.error("Google SDK not loaded");
+    }
+}, []);
+
 
 
   return (

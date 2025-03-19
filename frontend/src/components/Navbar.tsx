@@ -1,8 +1,10 @@
-import React from "react";
+import React ,{ useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate ,useLocation} from "react-router-dom";
 import { RootState } from "../lib/redux/store";
-import { logout } from "../lib/redux/slices/authSlice";
+import { logout as logoutAction } from "../lib/redux/slices/authSlice"; 
+import { logout as logoutApi } from "../lib/api/authApi"; 
+import { toast } from "react-toastify";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -10,6 +12,24 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthPage = location.pathname === "/auth";
+  const [isOpen, setIsOpen] = useState(false);
+
+
+  const handleLogout = async () => {
+    try {
+      if(user?.email){
+      await logoutApi(user?.email);
+      dispatch(logoutAction());
+      toast.success("Logged out successfully!");
+      navigate("/auth?type=login");
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed—try again!");
+    }
+    setIsOpen(false); // Close dropdown
+  };
+
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100">
@@ -75,8 +95,11 @@ const Navbar: React.FC = () => {
                 <button type="button" className="text-gray-600 hover:text-gray-900">
                   <i className="fas fa-comment-alt text-xl"></i>
                 </button>
+                {/* CHANGE: Dropdown with profile image */}
                 <div className="relative">
-                  <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+                  <button 
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
                     <img
                       className="h-8 w-8 rounded-full object-cover"
                       src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=32&h=32"
@@ -85,25 +108,29 @@ const Navbar: React.FC = () => {
                     <span className="text-sm font-medium">{user?.name || "User"}</span>
                     <i className="fas fa-chevron-down text-xs"></i>
                   </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden">
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  {isOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 ">
+                    <a 
+                    href="#" 
+                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Account Settings
                     </a>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <a href="#" onClick={() => setIsOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       My Subscription
                     </a>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <a href="#" onClick={() => setIsOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Workout History
                     </a>
                     <hr className="my-1" />
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      onClick={() => dispatch(logout())}
-                    >
-                      Logout
-                    </a>
+                    <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
                   </div>
+                  )}
                 </div>
               </div>
             ) : !isAuthPage ? (

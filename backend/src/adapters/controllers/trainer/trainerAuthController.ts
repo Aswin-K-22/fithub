@@ -20,8 +20,11 @@ const generateAccessToken = (user: { email: string; id: string }) => {
 
 export const trainerLogin = async (req: Request, res: Response) => {
     try {
+        console.log('trainer login functiuon');
+        
       const { email, password } = req.body;
       const { user } = await authTrainer.execute(email, password);
+  console.log('traienr verified');
   
       const accessToken = generateAccessToken({ email: user.email, id: user.id });
       const refreshToken = generateRefreshToken({ email: user.email, id: user.id });

@@ -53,7 +53,7 @@ app.post("/api/auth/admin/login", adminLogin);
 
 //Trainer routes
 
-app.post("/api/trainer/login", trainerLogin);
+app.post("/api/auth/trainer/login", trainerLogin);
 
 
 // Protected Routes (require auth)

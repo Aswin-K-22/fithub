@@ -1,96 +1,81 @@
 import React, { useState, FormEvent, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { RootState, AppDispatch } from "../../../lib/redux/store";
 import { login } from "../../../lib/redux/slices/authSlice";
-import { trainerLogin as trainerLoginApi } from "../../../lib/api/authApi"; // Use trainerLogin
-import { toast } from "react-toastify";
+import { trainerLogin } from "../../../lib/api/authApi"; // Assuming this is defined in authApi.ts
 import { AxiosError } from "axios";
 
 const TrainerLogin: React.FC = () => {
-    const dispatch = useDispatch<AppDispatch>();
-    const navigate = useNavigate();
-    const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  
-    const [loginData, setLoginData] = useState({ email: "", password: "" });
-    const [errors, setErrors] = useState({ email: "", password: "" });
-    const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-  
-    // Redirect if already authenticated as trainer
-    useEffect(() => {
-      if (isAuthenticated && user?.role === "trainer") {
-        navigate("/trainer/dashboard");
-      }
-    }, [isAuthenticated, user, navigate]);
-  
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setLoginData((prev) => ({ ...prev, [name]: value }));
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    };
-  
-    const validateLogin = () => {
-      let valid = true;
-      const newErrors = { email: "", password: "" };
-  
-      // Email validation: must be non-empty and end with @trainer.fithub.com
-      if (!loginData.email) {
-        newErrors.email = "Email is required";
-        valid = false;
-      } else if (!/^[a-zA-Z0-9._%+-]+@trainer\.fithub\.com$/.test(loginData.email)) {
-        newErrors.email = "Email must be a valid trainer email (e.g., name@trainer.fithub.com)";
-        valid = false;
-      }
-  
-      // Password validation: min 8 chars, at least 1 letter, 1 number
-      if (!loginData.password) {
-        newErrors.password = "Password is required";
-        valid = false;
-      } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(loginData.password)) {
-        newErrors.password = "Password must be at least 8 characters with 1 letter and 1 number";
-        valid = false;
-      }
-  
-      setErrors(newErrors);
-      return valid;
-    };
-  
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      if (!validateLogin()) {
-        toast.error("Please fix form errors", { position: "top-right" });
-        return;
-      }
-  
-      setLoading(true);
-      try {
-        const { user } = await trainerLoginApi(loginData.email, loginData.password); // Use trainerLogin
-        if (user.role !== "trainer") {
-          throw new Error("You are not authorized as a trainer");
-        }
-        console.log("Trainer login response:", user);
-        dispatch(login(user));
-        toast.success("Login successful!", { position: "top-right" });
-        navigate("/trainer/dashboard");
-      } catch (error) {
-        const axiosError = error as AxiosError<{ message?: string }>;
-        toast.error(
-          axiosError.response?.data?.message || "Login failed—check credentials",
-          { position: "top-right" }
-        );
-        console.error("Login failed:", axiosError);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    const togglePasswordVisibility = () => {
-      setShowPassword((prev) => !prev);
-    };
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({ email: "", password: "" });
+  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (isAuthenticated && user?.role === "trainer") {
+      navigate("/trainer/dashboard");
+    }
+  }, [isAuthenticated, user, navigate]);
 
-    
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setLoginData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const validateLogin = () => {
+    let valid = true;
+    const newErrors = { email: "", password: "" };
+
+    if (!loginData.email) {
+      newErrors.email = "Email is required";
+      valid = false;
+    } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(loginData.email)) {
+      newErrors.email = "Email must be a valid Gmail address";
+      valid = false;
+    }
+    if (!loginData.password || loginData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!validateLogin()) {
+      setError("Please fix form errors");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { user } = await trainerLogin(loginData.email, loginData.password); // Using Axios from authApi
+      if (user.role !== "trainer") {
+        throw new Error("You are not authorized as a trainer");
+      }
+
+      dispatch(login(user));
+      navigate("/trainer/dashboard");
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message?: string }>;
+      setError(
+        axiosError.response?.data?.message || "Login failed—check credentials"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 font-[Inter] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-8xl">
@@ -144,13 +129,15 @@ const TrainerLogin: React.FC = () => {
                         type="email"
                         id="email"
                         name="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={loginData.email}
+                        onChange={handleChange}
                         className="block w-full py-2 pl-10 border border-gray-300 rounded-md focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm placeholder-gray-400"
                         placeholder="Enter your email"
                       />
                     </div>
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                    )}
                   </div>
 
                   <div>
@@ -165,13 +152,15 @@ const TrainerLogin: React.FC = () => {
                         type="password"
                         id="password"
                         name="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={loginData.password}
+                        onChange={handleChange}
                         className="block w-full py-2 pl-10 border border-gray-300 rounded-md focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm placeholder-gray-400"
                         placeholder="Enter your password"
                       />
                     </div>
+                    {errors.password && (
+                      <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between">

@@ -79,4 +79,22 @@ export const refreshToken = async () => {
   return response.data;
 };
 
+
+//Admin
+
+export const adminLogin = async (email: string, password: string) => {
+  const response = await apiClient.post("/auth/admin/login", { email, password });
+  return response.data;
+};
+
+
+//Trainer
+
+
+export const trainerLogin = async (email: string, password: string) => {
+  const response = await apiClient.post("/auth/trainer/login", { email, password });
+  return response.data;
+};
+
+
 export default apiClient;

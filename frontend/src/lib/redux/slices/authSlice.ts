@@ -4,6 +4,7 @@ interface User {
     id: string;
     name: string;
     email: string;
+    role :"user" | "admin" | "trainer";
 }
 
 interface AuthState {
@@ -20,19 +21,18 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    login(state, action: PayloadAction<{ user: User; }>) {
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
-      },
-      logout(state) {
-        state.user = null;
-        state.isAuthenticated = false;
-      },
+    login(state, action: PayloadAction<User>) {
+      state.user = action.payload;
+      state.isAuthenticated = true;
+    },
     signup(state, action: PayloadAction<User>) {
       state.user = action.payload;
       state.isAuthenticated = true;
     },
- 
+    logout(state) {
+      state.user = null;
+      state.isAuthenticated = false;
+    },
   },
 });
 

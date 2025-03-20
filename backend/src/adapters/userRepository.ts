@@ -3,6 +3,7 @@ import { User } from "../entities/user";
 
 export interface UserRepository {
   findByEmail(email: string): Promise<User | null>;
+ 
   create(data: Omit<User,  'id'| "createdAt" | "updatedAt">): Promise<User>;
   updateOtp(email: string, otp: string): Promise<void>;
   verifyUser(email: string): Promise<void>;
@@ -54,4 +55,6 @@ export class MongoUserRepository implements UserRepository {
       console.error("Error updating refresh token:", error);
     }
   }
+
+
 }

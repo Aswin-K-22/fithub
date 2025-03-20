@@ -133,7 +133,7 @@ const transporter = nodemailer.createTransport({
       
     });
 
-    res.status(200).json({message: "Signup completed", user: {  id : pendingUser.id , email:  pendingUser.email, name: pendingUser.name } });
+    res.status(200).json({message: "Signup completed", user: {  id : pendingUser.id , email:  pendingUser.email, name: pendingUser.name  , role : pendingUser.role} });
 
 
     } catch (error) {
@@ -168,7 +168,7 @@ const transporter = nodemailer.createTransport({
       });
   
       console.log("Successfully logged in");
-      res.json({ user: {  id : user.id ,email: user.email, name: user.name } });
+      res.json({ user: {  id : user.id ,email: user.email, name: user.name ,role :user.role } });
     } catch (error) {
       res.status(401).json({ message: (error as Error).message });
     }
@@ -248,7 +248,7 @@ const transporter = nodemailer.createTransport({
      
       });
       console.log("New tokens set:", { newAccessToken, newRefreshToken });
-      res.status(200).json({ user: {  id : user.id ,email: user.email, name: user.name } });
+      res.status(200).json({ user: {  id : user.id ,email: user.email, name: user.name ,role :user.role } });
     } catch (error) {
       console.error("Refresh token error:", error);
       res.status(401).json({ message: "Invalid refresh token" });
@@ -307,7 +307,7 @@ const transporter = nodemailer.createTransport({
         res.status(404).json({ message: "User not found" });
         return 
       }
-      res.status(200).json({ user: { id: user.id, email: user.email, name: user.name } });
+      res.status(200).json({ user: { id: user.id, email: user.email, name: user.name ,role :user.role } });
     } catch (error) {
       console.error("Get me error:", error);
       res.status(500).json({ message: "Invalid token" });
@@ -365,7 +365,7 @@ const transporter = nodemailer.createTransport({
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
   
-      res.status(200).json({ user: { id: user.id, email: user.email, name: user.name } });
+      res.status(200).json({ user: { id: user.id, email: user.email, name: user.name ,role :user.role} });
     } catch (error) {
       console.error("Google Auth Error:", error);
       res.status(500).json({ message: "Google authentication failed" });

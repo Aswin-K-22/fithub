@@ -52,9 +52,9 @@ const VerifyOtp: React.FC = () => {
     }
 
     try {
-      const response = await verifyOtp(email, otp);
+      const {user} = await verifyOtp(email, otp);
       if (purpose === "signup") {
-      dispatch(login({ user: response.user, }));
+      dispatch(login(user));
       toast.success("Verification successful!");
       navigate("/");
     } else {

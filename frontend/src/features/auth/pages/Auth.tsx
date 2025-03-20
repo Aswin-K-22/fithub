@@ -48,9 +48,9 @@ const Auth: React.FC = () => {
   const handleGoogleCallback = useCallback(async (code: string) => {
     console.log("Handling Google callback with code:", code);
     try {
-      const response = await googleAuth(code);
-      console.log("Backend response:", response);
-      dispatch(login({ user: response.user }));
+      const {user} = await googleAuth(code);
+      console.log("Backend response:", user);
+      dispatch(login(user));
       toast.success("Logged in with Google!");
       navigate("/");
     } catch (error) {
@@ -149,8 +149,8 @@ const Auth: React.FC = () => {
       }
 
     try {
-      const response = await loginApi(loginData.email, loginData.password);
-      dispatch(login({ user: response.user }));
+      const {user} = await loginApi(loginData.email, loginData.password);
+      dispatch(login(user));
       toast.success("Login successful!", { position: "top-right" });
       navigate("/");
     } catch (error) {

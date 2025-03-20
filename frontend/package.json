@@ -15,6 +15,7 @@
     "@reduxjs/toolkit": "^2.6.1",
     "@types/socket.io-client": "^1.4.36",
     "axios": "^1.8.3",
+    "echarts-for-react": "^3.0.3",
     "google-auth-library": "^9.15.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

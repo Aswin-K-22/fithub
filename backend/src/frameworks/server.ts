@@ -6,6 +6,8 @@ import morgan from "morgan";
 import { signup, login  , verifyOtp ,logout, refreshToken ,resendOtp , getUser ,googleAuth} from "../adapters/controllers/authController";
 import cookieParser from 'cookie-parser'
 import { authMiddleware } from "../adapters/middleware/authMiddleware";
+import { adminLogin } from "../adapters/controllers/admin/adminAuthController";
+import { trainerLogin } from "../adapters/controllers/trainer/trainerAuthController";
 
 
 const app = express();
@@ -42,6 +44,17 @@ app.post("/api/auth/login", login);
 app.post("/api/auth/verify-otp", verifyOtp);
 app.post("/api/auth/google", googleAuth);
 app.post("/api/auth/resend-otp", resendOtp);
+
+
+// Admin Routes
+
+app.post("/api/auth/admin/login", adminLogin);
+
+
+//Trainer routes
+
+app.post("/api/trainer/login", trainerLogin);
+
 
 // Protected Routes (require auth)
 app.post("/api/auth/logout", authMiddleware, logout);

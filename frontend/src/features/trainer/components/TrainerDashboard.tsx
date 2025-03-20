@@ -12,7 +12,6 @@ import { EChartsOption } from "echarts";
 const TrainerDashboard: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
 
-  // Static data (replace with API calls later)
   const stats = [
     { icon: "fa-calendar-day", title: "Today's Sessions", value: "8" },
     { icon: "fa-users", title: "Active Clients", value: "24" },

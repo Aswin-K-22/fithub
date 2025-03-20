@@ -90,7 +90,6 @@ const App: React.FC = () => {
   );
 };
 
-// Wrap App in Router
 const AppWithRouter: React.FC = () => (
   <Router>
     <App />

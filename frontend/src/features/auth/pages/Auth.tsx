@@ -182,7 +182,6 @@ const Auth: React.FC = () => {
 
 
 
-// Google Login/Signup
 
 const handleGoogleLogin = useCallback(() => {
   console.log("Google login initiated");

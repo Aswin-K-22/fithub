@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { RootState, AppDispatch } from "../../../lib/redux/store";
 import { login } from "../../../lib/redux/slices/authSlice";
-import { trainerLogin } from "../../../lib/api/authApi"; // Assuming this is defined in authApi.ts
+import { trainerLogin } from "../../../lib/api/authApi"; 
 import { AxiosError } from "axios";
 
 const TrainerLogin: React.FC = () => {
@@ -59,7 +59,7 @@ const TrainerLogin: React.FC = () => {
     setError(null);
 
     try {
-      const { user } = await trainerLogin(loginData.email, loginData.password); // Using Axios from authApi
+      const { user } = await trainerLogin(loginData.email, loginData.password); 
       if (user.role !== "trainer") {
         throw new Error("You are not authorized as a trainer");
       }

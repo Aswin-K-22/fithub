@@ -116,7 +116,6 @@ const VerifyOtp: React.FC = () => {
                   onChange={setOtp}
                   numInputs={6}
                   renderInput={(props, index) => (
-                    // CHANGE: Added mr-2 to all but last input for gap
                     <input
                       {...props}
                       className={`w-12 h-12 min-w-0 text-center text-xl font-semibold border border-gray-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 ${

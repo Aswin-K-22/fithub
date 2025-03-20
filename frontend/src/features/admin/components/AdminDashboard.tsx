@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom"; // Add useNavigate
+import { useNavigate } from "react-router-dom"; 
 import { RootState, AppDispatch } from "../../../lib/redux/store";
 import Sidebar from "./Sidebar";
 import StatCard from "./StatCard";
 import ActivityCard from "./ActivityCard";
 import ReactECharts from "echarts-for-react";
 import { EChartsOption } from "echarts";
-import { logout as logoutAction } from "../../../lib/redux/slices/authSlice"; // Add logout action
-import { logout as logoutApi } from "../../../lib/api/authApi"; // Add logout API
-import { toast } from "react-toastify"; // Add toast
+import { logout as logoutAction } from "../../../lib/redux/slices/authSlice";
+import { logout as logoutApi } from "../../../lib/api/authApi"; 
+import { toast } from "react-toastify";
 
 const AdminDashboard: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
-    const dispatch = useDispatch<AppDispatch>(); // Add dispatch
-    const navigate = useNavigate(); // Add navigate
-    const [isOpen, setIsOpen] = useState(false); // State for dropdown
+    const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate(); 
+    const [isOpen, setIsOpen] = useState(false); 
   
     const handleLogout = async () => {
       try {
@@ -29,7 +29,7 @@ const AdminDashboard: React.FC = () => {
         console.error("Logout failed:", error);
         toast.error("Logout failed—try again!", { position: "top-right" });
       }
-      setIsOpen(false); // Close dropdown
+      setIsOpen(false); 
     };
   
     const stats = [

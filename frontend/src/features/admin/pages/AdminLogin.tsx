@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState, AppDispatch } from "../../../lib/redux/store";
 import { login } from "../../../lib/redux/slices/authSlice";
-import { adminLogin as adminLoginApi } from "../../../lib/api/authApi"; // Use adminLogin
+import { adminLogin as adminLoginApi } from "../../../lib/api/authApi"; 
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 
@@ -19,7 +19,7 @@ const AdminLogin: React.FC = () => {
   
     useEffect(() => {
       if (isAuthenticated && user?.role === "admin") {
-        navigate("/admin/dashboard"); // Changed to /admin/dashboard
+        navigate("/admin/dashboard"); 
       }
     }, [isAuthenticated, user, navigate]);
   
@@ -58,7 +58,7 @@ const AdminLogin: React.FC = () => {
   
       setLoading(true);
       try {
-        const { user } = await adminLoginApi(loginData.email, loginData.password); // Use adminLogin
+        const { user } = await adminLoginApi(loginData.email, loginData.password); 
         console.log("Admin login response:", user);
         dispatch(login(user));
         toast.success("Login successful!", { position: "top-right" });

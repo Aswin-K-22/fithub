@@ -1,15 +1,23 @@
-export interface User {
-  id: string;
-  email: string;
-  password: string;
-  role: string;
-  name: string | null;
-  createdAt?: Date;
-  updatedAt?: Date;
-  otp?: string | null;
-  otpExpires?: Date | null;
-  isVerified?: boolean;
-  refreshToken?: string | null;
-  }
+import { Prisma } from "@prisma/client";
 
-  
+export type User = Prisma.UserGetPayload<{}>;
+
+export type UserWithoutSensitiveData = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    email: true;
+    role: true;
+    name: true;
+    createdAt: true;
+    updatedAt: true;
+    isVerified: true;
+    membershipId: true;
+    fitnessProfile: true;
+    workoutPlanId: true;
+    progress: true;
+    weeklySummary: true;
+    profilePic: true;
+  };
+}>;
+
+export default User;

@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +25,11 @@ const Navbar: React.FC = () => {
       console.error("Logout failed:", error);
       toast.error("Logout failed—try again!");
     }
+    setIsOpen(false);
+  };
+
+  const handleProfileClick = () => {
+    navigate("/trainer/profile");
     setIsOpen(false);
   };
 
@@ -88,13 +94,12 @@ const Navbar: React.FC = () => {
               </button>
               {isOpen && (
                 <div className="absolute right-0 top-10 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                  <a
-                    href="#"
-                    onClick={() => setIsOpen(false)}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  <button
+                    onClick={handleProfileClick}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Profile
-                  </a>
+                  </button>
                   <a
                     href="#"
                     onClick={() => setIsOpen(false)}

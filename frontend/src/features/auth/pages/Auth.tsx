@@ -2,12 +2,11 @@ import React, { useState, FormEvent, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { login } from "../../../lib/redux/slices/authSlice";
-import {login as loginApi, signup as signupApi, googleAuth } from "../../../lib/api/authApi";
+import { login as loginApi, signup as signupApi, googleAuth } from "../../../lib/api/authApi";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
-import { Location } from "react-router-dom";
 
 interface GoogleWindow extends Window {
   google?: {
@@ -25,16 +24,14 @@ interface GoogleWindow extends Window {
 }
 
 const Auth: React.FC = () => {
-  const location = useLocation() as Location;
+  const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const [isLogin, setIsLogin] = useState(() => {
     const params = new URLSearchParams(location.search);
-    return params.get("type") !== "signup"; 
+    return params.get("type") !== "signup";
   });
-
-
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
@@ -45,43 +42,43 @@ const Auth: React.FC = () => {
   });
   const [errors, setErrors] = useState({ email: "", password: "", confirmPassword: "", name: "" });
 
-  const handleGoogleCallback = useCallback(async (code: string) => {
-    console.log("Handling Google callback with code:", code);
-    try {
-      const {user} = await googleAuth(code);
-      console.log("Backend response:", user);
-      dispatch(login(user));
-      toast.success("Logged in with Google!");
-      navigate("/");
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-      console.error("Google auth failed:", axiosError);
-      toast.error(axiosError.response?.data?.message || "Google auth failed");
-      navigate("/auth?type=login");
-    }
-  }, [dispatch, navigate]);
-  
-  
+  const handleGoogleCallback = useCallback(
+    async (code: string) => {
+      console.log("Handling Google callback with code:", code);
+      try {
+        const { user } = await googleAuth(code);
+        console.log("Backend response:", user);
+        dispatch(login(user));
+        toast.success("Logged in with Google!");
+        navigate(user.role === "admin" ? "/admin/dashboard" : user.role === "trainer" ? "/trainer/dashboard" : "/");
+      } catch (error) {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        console.error("Google auth failed:", axiosError);
+        toast.error(axiosError.response?.data?.message || "Google auth failed");
+        navigate("/auth?type=login");
+      }
+    },
+    [dispatch, navigate]
+  );
+
   useEffect(() => {
-    console.log("useEffect triggered with location:", location.pathname, location.search); 
+    console.log("useEffect triggered with location:", location.pathname, location.search);
     const params = new URLSearchParams(location.search);
     setIsLogin(params.get("type") !== "signup");
     const code = params.get("code");
-    if (code) {
+
+    if (location.pathname.includes("google/callback") && code) {
       console.log("Received code:", code);
       handleGoogleCallback(code);
+    } else if (!code) {
       console.log("No code found in URL:", location.search);
     }
-    
-  }, [location.search, location.pathname,handleGoogleCallback ]);
-
-  
-
+  }, [location.search, location.pathname, handleGoogleCallback]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); 
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +99,7 @@ const Auth: React.FC = () => {
       valid = false;
     }
     if (!loginData.password || loginData.password.length < 6) {
-      newErrors.password = "valid Password is required";
+      newErrors.password = "Valid Password is required";
       valid = false;
     }
 
@@ -144,21 +141,21 @@ const Auth: React.FC = () => {
   const handleLoginSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateLogin()) {
-        toast.error("Please fix form errors", { position: "top-right" });
-        return;
-      }
+      toast.error("Please fix form errors", { position: "top-right" });
+      return;
+    }
 
     try {
-      const {user} = await loginApi(loginData.email, loginData.password);
+      const { user } = await loginApi(loginData.email, loginData.password);
       dispatch(login(user));
       toast.success("Login successful!", { position: "top-right" });
       navigate("/");
     } catch (error) {
-        const axiosError = error as AxiosError<{ message?: string }>;
-        toast.error(axiosError.response?.data?.message || "Login failed—check credentials" ,{
-            position: "top-right",
-          });
-          console.error("Login failed:", axiosError);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      toast.error(axiosError.response?.data?.message || "Login failed—check credentials", {
+        position: "top-right",
+      });
+      console.error("Login failed:", axiosError);
     }
   };
 
@@ -172,7 +169,7 @@ const Auth: React.FC = () => {
     try {
       await signupApi(signupData.name, signupData.email, signupData.password);
       toast.success("OTP sent to your email!");
-      navigate("/verify-otp", { state: { email: signupData.email } }); 
+      navigate("/verify-otp", { state: { email: signupData.email } });
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
       toast.error(axiosError.response?.data?.message || "Failed to send OTP");
@@ -180,29 +177,24 @@ const Auth: React.FC = () => {
     }
   };
 
-
-
-
-const handleGoogleLogin = useCallback(() => {
-  console.log("Google login initiated");
-  const googleWindow = window as GoogleWindow;
-  const google = googleWindow.google;
-  if (google) {
-    google.accounts.oauth2
-      .initCodeClient({
-        client_id:import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        scope: "email profile",
-        ux_mode: "redirect", 
-        redirect_uri: import.meta.env.VITE_GOOGLE_CALLBACK,
-        
-      })
-      .requestCode();
+  const handleGoogleLogin = useCallback(() => {
+    console.log("Google login initiated");
+    const googleWindow = window as GoogleWindow;
+    const google = googleWindow.google;
+    if (google) {
+      google.accounts.oauth2
+        .initCodeClient({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          scope: "email profile",
+          ux_mode: "redirect",
+          redirect_uri: import.meta.env.VITE_GOOGLE_CALLBACK,
+        })
+        .requestCode();
     } else {
       console.error("Google SDK not loaded");
+      toast.error("Google SDK not loaded");
     }
-}, []);
-
-
+  }, []);
 
   return (
     <div className="font-inter bg-gray-50">
@@ -217,7 +209,6 @@ const handleGoogleLogin = useCallback(() => {
             />
           </div>
           <div className="p-8">
-            {/* toggle Buttons */}
             <div className="flex justify-center space-x-4 mb-6">
               <button
                 className={`px-6 py-2 font-medium transition-all duration-300 ${
@@ -241,13 +232,10 @@ const handleGoogleLogin = useCallback(() => {
               </button>
             </div>
 
-            {/* login Form */}
             {isLogin ? (
               <form className="space-y-6" onSubmit={handleLoginSubmit}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                   <input
                     type="email"
                     name="email"
@@ -259,9 +247,7 @@ const handleGoogleLogin = useCallback(() => {
                   {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                   <div className="relative">
                     <input
                       type="password"
@@ -303,12 +289,9 @@ const handleGoogleLogin = useCallback(() => {
                 </button>
               </form>
             ) : (
-              /* Signup Form */
               <form className="space-y-6" onSubmit={handleSignupSubmit}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                   <input
                     type="text"
                     name="name"
@@ -320,9 +303,7 @@ const handleGoogleLogin = useCallback(() => {
                   {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                   <input
                     type="email"
                     name="email"
@@ -334,9 +315,7 @@ const handleGoogleLogin = useCallback(() => {
                   {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                   <div className="relative">
                     <input
                       type="password"
@@ -356,9 +335,7 @@ const handleGoogleLogin = useCallback(() => {
                   {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm Password
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                   <input
                     type="password"
                     name="confirmPassword"
@@ -380,7 +357,6 @@ const handleGoogleLogin = useCallback(() => {
               </form>
             )}
 
-            {/* Social Buttons */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
@@ -390,7 +366,7 @@ const handleGoogleLogin = useCallback(() => {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-            <button
+              <button
                 onClick={handleGoogleLogin}
                 className="flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-blue-600 transition-all duration-200"
               >

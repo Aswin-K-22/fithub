@@ -5,9 +5,10 @@ import { MongoUserRepository } from "../userRepository";
 const userRepo = new MongoUserRepository();
 
 
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const adminAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const accessToken = req.cookies?.accessToken;
+      //console.log("Access Token:", accessToken);
       if (!accessToken) {
         res.status(401).json({ message: "No access token provided" });
         return 
@@ -18,15 +19,22 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         email: string;
         id: string;
       };
+      //console.log("Decoded:", decoded);
   
-      const user = await userRepo.findById(decoded.id);
+      const user = await userRepo.findByEmail(decoded.email);
       if (!user) {
-        res.status(401).json({ message: "User not found" });
+        res.status(401).json({ message: "Admin not found" });
+        return 
+      
+    }
+    //console.log("User:", user);
+    if (user.role !== 'admin') {
+        res.status(401).json({ message: "Admin not found" });
         return 
       
     }
   
-      req.user  = { id: user.id, email: user.email };
+      req.admin  = { id: user.id, email: user.email };
       next();
     } catch (error) {
       console.error("Auth middleware error:", error);
@@ -38,6 +46,6 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
   declare module "express" {
     interface Request {
-      user?: { id: string; email: string };
+      admin?: { id: string; email: string };
     }
   }

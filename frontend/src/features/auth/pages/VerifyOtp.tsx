@@ -2,7 +2,7 @@ import React, { useState, useEffect, FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { login } from "../../../lib/redux/slices/authSlice";
-import { verifyOtp, resendOtp } from "../../../lib/api/authApi";
+import { verifyOtp, resendOtp, trainerLoginVerifyOtp } from "../../../lib/api/authApi";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import { toast } from "react-toastify";
@@ -14,18 +14,20 @@ const VerifyOtp: React.FC = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { email, purpose = "signup" } = location.state || {};
+  console.log("Received state:", { email, purpose });
 
   const [otp, setOtp] = useState("");
-  const [timeLeft, setTimeLeft] = useState(30); 
+  const [timeLeft, setTimeLeft] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const [errors, setErrors] = useState({ otp: "" });
 
   useEffect(() => {
     if (!email) {
-      toast.error("No email provided—please sign up again");
-      navigate("/auth?type=signup");
+      toast.error("No email provided—please try again");
+      navigate(purpose === "trainer-login" ? "/trainer/login" : "/auth?type=signup");
     }
-  }, [email, navigate]);
+    console.log("Received state in useEffect:", { email, purpose });
+  }, [email, navigate, purpose]);
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -50,28 +52,43 @@ const VerifyOtp: React.FC = () => {
       toast.error("Please enter a valid OTP");
       return;
     }
-
+  
+    console.log("Submitting OTP with purpose:", purpose);
     try {
-      const {user} = await verifyOtp(email, otp);
       if (purpose === "signup") {
-      dispatch(login(user));
-      toast.success("Verification successful!");
-      navigate("/");
-    } else {
+        console.log("Calling verifyOtp for signup");
+        const { user } = await verifyOtp(email, otp);
+        console.log("Signup user:", user);
+        dispatch(login(user));
+        toast.success("Verification successful!");
+        navigate("/");
+      } else if (purpose === "trainer-login") {
+        console.log("Calling trainerLoginVerifyOtp");
+        const { user } = await trainerLoginVerifyOtp(email, otp); // Match backend response
+        console.log("Trainer data:", user);
+        if (user.role !== "trainer") {
+          throw new Error("You are not authorized as a trainer");
+        }
+        dispatch(login(user));
+        console.log("Dispatched login for trainer");
+        toast.success("Trainer login successful!");
+        navigate("/trainer/dashboard", { replace: true }); // Use replace to avoid history stack issues
+        console.log("Navigating to /trainer/dashboard");
+      } else {
+        console.log("Fallback case");
         toast.success("OTP verified successfully!");
-        navigate("/"); 
+        navigate("/");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
+      console.error("OTP submission error:", axiosError);
       toast.error(axiosError.response?.data?.message || "OTP verification failed");
-      console.error("OTP verification failed:", axiosError);
     }
   };
 
   const handleResendOtp = async () => {
     try {
-      
-        await resendOtp(email);
+      await resendOtp(email);
       toast.success("OTP resent to your email!");
       setTimeLeft(30);
       setCanResend(false);
@@ -105,7 +122,9 @@ const VerifyOtp: React.FC = () => {
           <div className="p-8">
             <form className="space-y-6" onSubmit={handleOtpSubmit}>
               <div className="text-center">
-                <h1 className="mb-2 text-2xl font-bold text-gray-900">Verify Your OTP</h1>
+                <h1 className="mb-2 text-2xl font-bold text-gray-900">
+                  {purpose === "trainer-login" ? "Trainer Login - Verify OTP" : "Verify Your OTP"}
+                </h1>
                 <p className="mb-8 text-sm text-gray-600">
                   Enter the 6-digit OTP sent to {email}
                 </p>
@@ -136,7 +155,7 @@ const VerifyOtp: React.FC = () => {
                 type="submit"
                 className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                Verify & Continue
+                Verify & {purpose === "trainer-login" ? "Login" : "Continue"}
               </button>
               <button
                 type="button"
@@ -148,7 +167,7 @@ const VerifyOtp: React.FC = () => {
               </button>
               <div className="flex flex-col gap-3 text-center text-sm">
                 <button
-                  onClick={() => navigate("/auth?type=signup")}
+                  onClick={() => navigate(purpose === "trainer-login" ? "/trainer/login" : "/auth?type=signup")}
                   className="text-blue-600 hover:text-blue-700"
                 >
                   Change Email

@@ -10,7 +10,7 @@ export class AuthenticateAdmin {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new Error("Invalid email or password");
     }
-    if (user.role !== "trainer") {
+    if (user.role !== "admin") {
       throw new Error("Not authorized as admin");
     }
     return { user };

@@ -2,29 +2,47 @@ import React from "react";
 
 interface StatCardProps {
   title: string;
-  value: string;
+  value: string | number;
   icon: string;
-  percentage: string;
-  color: string;
+  percentage?: string; // Optional for dashboard
+  color?: string; // For dashboard (text color)
+  bgColor?: string; // For trainers (background color)
+  textColor?: string; // For trainers (icon/text color)
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, percentage, color }) => (
-  <div className="bg-white p-6 rounded-lg shadow-sm">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm text-gray-500">{title}</p>
-        <h3 className="text-2xl font-semibold mt-1">{value}</h3>
+const StatCard: React.FC<StatCardProps> = ({
+  title,
+  value,
+  icon,
+  percentage,
+  color,
+  bgColor,
+  textColor,
+}) => (
+  <div className="bg-white overflow-hidden shadow rounded-lg">
+    <div className="px-4 py-5 sm:p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
+          <h3 className="text-lg font-semibold text-gray-900 mt-1">{value}</h3>
+        </div>
+        <div
+          className={`flex-shrink-0 ${
+            bgColor || `${color || "bg-indigo-600"} bg-opacity-10`
+          } ${bgColor ? "rounded-md p-3" : "w-12 h-12 rounded-full"} flex items-center justify-center`}
+        >
+          <i className={`fas ${icon} ${textColor || color || "text-indigo-600"} text-xl`}></i>
+        </div>
       </div>
-      <div className={`w-12 h-12 bg-indigo-600 bg-opacity-10 rounded-full flex items-center justify-center ${color}`}>
-        <i className={`fas ${icon}`}></i>
-      </div>
-    </div>
-    <div className="mt-4 flex items-center">
-      <span className="text-green-500 text-sm flex items-center">
-        <i className="fas fa-arrow-up mr-1"></i>
-        {percentage}
-      </span>
-      <span className="text-gray-400 text-sm ml-2">vs last month</span>
+      {percentage && (
+        <div className="mt-4 flex items-center">
+          <span className="text-green-500 text-sm flex items-center">
+            <i className="fas fa-arrow-up mr-1"></i>
+            {percentage}
+          </span>
+          <span className="text-gray-400 text-sm ml-2">vs last month</span>
+        </div>
+      )}
     </div>
   </div>
 );

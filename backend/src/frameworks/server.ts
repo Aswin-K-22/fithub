@@ -1,4 +1,6 @@
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
+import type { Request, Response, NextFunction } from "express";
+
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
@@ -7,7 +9,11 @@ import { signup, login  , verifyOtp ,logout, refreshToken ,resendOtp , getUser ,
 import cookieParser from 'cookie-parser'
 import { authMiddleware } from "../adapters/middleware/authMiddleware";
 import { adminLogin } from "../adapters/controllers/admin/adminAuthController";
-import { trainerLogin } from "../adapters/controllers/trainer/trainerAuthController";
+import { getTrainer, trainerLogin ,verifyTrainerOtp} from "../adapters/controllers/trainer/trainerAuthController";
+import { getAllUsers } from "../adapters/controllers/admin/userManagement";
+import { adminAuthMiddleware } from "../adapters/middleware/adminAuthMiddleware";
+import { addTrainer } from "../adapters/controllers/admin/TrainerManagement";
+import { trainerAuthMiddleware } from "../adapters/middleware/trainerAuthMidd";
 
 
 const app = express();
@@ -49,17 +55,20 @@ app.post("/api/auth/resend-otp", resendOtp);
 // Admin Routes
 
 app.post("/api/auth/admin/login", adminLogin);
-
+app.get("/api/admin/users", adminAuthMiddleware, getAllUsers);
+app.post('/api/admin/addTrainer' , addTrainer);
 
 //Trainer routes
 
 app.post("/api/auth/trainer/login", trainerLogin);
+app.post("/api/auth/trainer/verify-otp", verifyTrainerOtp);
 
 
 // Protected Routes (require auth)
 app.post("/api/auth/logout", authMiddleware, logout);
-app.post("/api/auth/refresh-token", authMiddleware, refreshToken); 
+app.post("/api/auth/refresh-token", refreshToken); 
 app.get("/api/auth/user", authMiddleware, getUser);
+app.get("/api/auth/user-trainer", trainerAuthMiddleware, getTrainer);
 
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

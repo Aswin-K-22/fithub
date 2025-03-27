@@ -1,13 +1,14 @@
 import React, { useState, FormEvent, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import {  useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { RootState, AppDispatch } from "../../../lib/redux/store";
-import { login } from "../../../lib/redux/slices/authSlice";
+import { RootState} from "../../../lib/redux/store";
+// import { login } from "../../../lib/redux/slices/authSlice";
 import { trainerLogin } from "../../../lib/api/authApi"; 
 import { AxiosError } from "axios";
+import { toast } from "react-toastify";
 
 const TrainerLogin: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  //const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -59,13 +60,12 @@ const TrainerLogin: React.FC = () => {
     setError(null);
 
     try {
-      const { user } = await trainerLogin(loginData.email, loginData.password); 
-      if (user.role !== "trainer") {
-        throw new Error("You are not authorized as a trainer");
-      }
-
-      dispatch(login(user));
-      navigate("/trainer/dashboard");
+       await trainerLogin(loginData.email, loginData.password); 
+       
+       toast.success("OTP sent to your email!");
+       console.log("Navigating to VerifyOtp with state:", { email: loginData.email, purpose: "trainer-login" });
+navigate("/verify-otp", { state: { email: loginData.email, purpose: "trainer-login" } });
+  
     } catch (err) {
       const axiosError = err as AxiosError<{ message?: string }>;
       setError(

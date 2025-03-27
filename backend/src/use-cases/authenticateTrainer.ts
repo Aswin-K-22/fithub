@@ -1,18 +1,21 @@
-import { User } from "../entities/user";
-import { UserRepository } from "../adapters/userRepository";
+import { Trainer } from "../entities/trainer";
+import { TrainerRepository } from "../adapters/trainerRepository";
 import * as bcrypt from "bcrypt";
+import { log } from "console";
 
 export class AuthenticateTrainer {
-  constructor(private userRepo: UserRepository) {}
+  constructor(private trainerRepo: TrainerRepository) {}
 
-  async execute(email: string, password: string): Promise<{ user: User }> {
-    const user = await this.userRepo.findByEmail(email);
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+  async execute(email: string, password: string): Promise<{ trainer: Trainer }> {
+    const trainer = await this.trainerRepo.findByEmail(email);
+    console.log('email -' , email , 'password' ,password , );
+    
+    if (!trainer || !(await bcrypt.compare(password, trainer.password))) {
       throw new Error("Invalid email or password");
     }
-    if (user.role !== "trainer") {
+    if (trainer.role !== "trainer") {
       throw new Error("Not authorized as admin");
     }
-    return { user };
+    return { trainer };
   }
 }

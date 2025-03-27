@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { MongoUserRepository } from "../../userRepository";
-import { AuthenticateAdmin } from "../../../use-cases/authenticateAdmin"; // New import
+import { AuthenticateAdmin } from "../../../use-cases/authenticateAdmin"; 
 import * as jwt from "jsonwebtoken";
 
 const userRepo = new MongoUserRepository();
@@ -20,6 +20,8 @@ const generateAccessToken = (user: { email: string; id: string }) => {
 
 export const adminLogin = async (req: Request, res: Response) => {
     try {
+      console.log('admin trying to login');
+      
       const { email, password } = req.body;
       const{ user } = await authAdmin.execute(email, password); 
   
@@ -47,3 +49,4 @@ export const adminLogin = async (req: Request, res: Response) => {
       res.status(401).json({ message: (error as Error).message });
     }
   };
+

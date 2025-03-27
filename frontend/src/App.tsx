@@ -7,21 +7,29 @@ import Auth from "./features/auth/pages/Auth";
 import VerifyOtp from "./features/auth/pages/VerifyOtp";
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "./lib/redux/slices/authSlice";
-import { getMe } from "./lib/api/authApi";
-import AdminDashboard from "./features/admin/components/AdminDashboard";
+import { getMe, getTrainerMe } from "./lib/api/authApi";
+import AdminDashboard from "./features/admin/pages/AdminDashboard";
+import DashboardView from "./features/admin/pages/DashboardView";
+import UserManagement from "./features/admin/pages/UserManagement";
+import Reports from "./features/admin/pages/Reports";
+import Trainers from "./features/admin/pages/TrainersManagement";
+import Gyms from "./features/admin/pages/Gyms";
 import TrainerDashboard from "./features/trainer/components/TrainerDashboard";
+import TrainerProfile from "./features/trainer/pages/TrainerProfile";
 import { AppDispatch, RootState } from "./lib/redux/store";
 import AdminLogin from "./features/admin/pages/AdminLogin";
 import TrainerLogin from "./features/trainer/pages/TrainerLogin";
+import AddTrainer from "./features/admin/pages/AddTrainer";
+import UserProfile from "./features/user/pages/UserProfile";
 
 const ProtectedRoute: React.FC<{ element: JSX.Element; allowedRoles: string[] }> = ({ element, allowedRoles }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const location = useLocation();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const userRole = user?.role || "";
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !location.pathname.includes("login") && location.pathname !== "/verify-otp") {
       if (location.pathname.startsWith("/admin")) {
         navigate("/admin/login", { replace: true, state: { from: location } });
       } else if (location.pathname.startsWith("/trainer")) {
@@ -29,7 +37,7 @@ const ProtectedRoute: React.FC<{ element: JSX.Element; allowedRoles: string[] }>
       } else {
         navigate("/auth", { replace: true, state: { from: location } });
       }
-    } else if (!allowedRoles.includes(userRole)) {
+    } else if (isAuthenticated && !allowedRoles.includes(userRole)) {
       navigate("/", { replace: true });
     }
   }, [isAuthenticated, userRole, location, navigate, allowedRoles]);
@@ -41,25 +49,69 @@ const App: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const checkSession = async () => {
+      // Skip if on auth-related pages
+      if (
+        location.pathname.includes("login") ||
+        location.pathname === "/verify-otp" ||
+        location.pathname.includes("google/callback")
+      ) {
+        console.log("Skipping session check - on auth page");
+        return;
+      }
+
+      // Skip if already authenticated and on a valid route
+      if (isAuthenticated && user) {
+        const validRoutes: { [key: string]: string[] } = {
+          admin: ["/admin"],
+          trainer: ["/trainer"],
+          user: ["/", "/profile"],
+        };
+        const isValidRoute = validRoutes[user.role]?.some((route) => location.pathname.startsWith(route));
+        if (isValidRoute) {
+          console.log("Session already valid, skipping API call");
+          return;
+        }
+      }
+
       try {
-        const { user } = await getMe();
-        console.log("Session check user:", user);
-        dispatch(login(user));
-        if (user.role === "admin") {
+        let userData;
+        if (location.pathname.startsWith("/trainer")) {
+          const { trainer } = await getTrainerMe();
+          userData = { id: trainer.id, email: trainer.email, name: trainer.name, role: trainer.role || "trainer" };
+        } else {
+          const { user } = await getMe();
+          userData = user;
+        }
+        console.log("Session check user:", userData);
+        dispatch(login(userData));
+
+        // Redirect if not on the correct path
+        if (userData.role === "admin" && !location.pathname.startsWith("/admin")) {
           navigate("/admin/dashboard", { replace: true });
-        } else if (user.role === "trainer") {
+        } else if (userData.role === "trainer" && !location.pathname.startsWith("/trainer")) {
           navigate("/trainer/dashboard", { replace: true });
+        } else if (userData.role === "user" && location.pathname !== "/" && location.pathname !== "/profile") {
+          navigate("/", { replace: true });
         }
       } catch (error) {
         console.error("Session check failed:", error);
         dispatch(logout());
+        if (location.pathname.startsWith("/trainer")) {
+          navigate("/trainer/login", { replace: true });
+        } else if (location.pathname.startsWith("/admin")) {
+          navigate("/admin/login", { replace: true });
+        } else {
+          navigate("/auth", { replace: true });
+        }
       }
     };
+
     checkSession();
-  }, [dispatch, navigate]);
+  }, [location.pathname, dispatch, navigate]); // Removed isAuthenticated and user from deps
 
   console.log("App render - isAuthenticated:", isAuthenticated, "user.role:", user?.role);
 
@@ -69,20 +121,31 @@ const App: React.FC = () => {
         <ErrorBoundary>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/profile" element={<ProtectedRoute element={<UserProfile />} allowedRoles={["user"]} />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="auth/google/callback" element={<Auth />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/trainer/login" element={<TrainerLogin />} />
-            <Route
-              path="/admin/dashboard"
-              element={<ProtectedRoute element={<AdminDashboard />} allowedRoles={["admin"]} />}
-            />
-            <Route
-              path="/trainer/dashboard"
-              element={<ProtectedRoute element={<TrainerDashboard />} allowedRoles={["trainer"]} />}
-            />
-            <Route path="*" element={<LandingPage />} /> {/* Fallback to LandingPage */}
+            <Route path="/admin" element={<ProtectedRoute element={<AdminDashboard />} allowedRoles={["admin"]} />}>
+              <Route path="dashboard" element={<DashboardView />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="trainers" element={<Trainers />} />
+              <Route path="trainers/add" element={<AddTrainer />} />
+              <Route path="gyms" element={<Gyms />} />
+              <Route path="earnings" element={<div>Earnings Page</div>} />
+              <Route path="subscriptions" element={<div>Subscriptions Page</div>} />
+              <Route path="ai-training" element={<div>AI Training Page</div>} />
+              <Route path="notifications" element={<div>Notifications Page</div>} />
+              <Route path="support" element={<div>Support Page</div>} />
+              <Route path="settings" element={<div>Settings Page</div>} />
+            </Route>
+            <Route path="/trainer">
+              <Route path="dashboard" element={<ProtectedRoute element={<TrainerDashboard />} allowedRoles={["trainer"]} />} />
+              <Route path="profile" element={<ProtectedRoute element={<TrainerProfile />} allowedRoles={["trainer"]} />} />
+            </Route>
+            <Route path="*" element={<LandingPage />} />
           </Routes>
         </ErrorBoundary>
       </GoogleOAuthProvider>

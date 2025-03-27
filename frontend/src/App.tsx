@@ -80,8 +80,8 @@ const App: React.FC = () => {
       try {
         let userData;
         if (location.pathname.startsWith("/trainer")) {
-          const { trainer } = await getTrainerMe();
-          userData = { id: trainer.id, email: trainer.email, name: trainer.name, role: trainer.role || "trainer" };
+          const { user } = await getTrainerMe();
+          userData = { id: user.id, email: user.email, name: user.name, role: user.role || "trainer" };
         } else {
           const { user } = await getMe();
           userData = user;
@@ -111,7 +111,7 @@ const App: React.FC = () => {
     };
 
     checkSession();
-  }, [location.pathname, dispatch, navigate]); // Removed isAuthenticated and user from deps
+  }, [location.pathname, dispatch, navigate ]); 
 
   console.log("App render - isAuthenticated:", isAuthenticated, "user.role:", user?.role);
 

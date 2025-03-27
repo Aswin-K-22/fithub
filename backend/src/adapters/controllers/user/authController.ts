@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import { MongoUserRepository } from "../userRepository";
-import { MongoTrainerRepository } from "../trainerRepository";
-import { generateAccessToken, generateRefreshToken } from "../config/tokens";
+import { MongoUserRepository } from "../../userRepository";
+import { MongoTrainerRepository } from "../../trainerRepository";
+import { generateAccessToken, generateRefreshToken } from "../../config/tokens";
 import { OAuth2Client, LoginTicket } from "google-auth-library";
-import { AuthenticateUser } from "../../use-cases/authenticateUser";
-import { RegisterUser } from "../../use-cases/registerUser";
-import { transporter } from "../config/emailConfig";
-import { generateOtp } from "../config/otpGenerate";
+import { AuthenticateUser } from "../../../use-cases/authenticateUser";
+import { RegisterUser } from "../../../use-cases/registerUser";
+import { transporter } from "../../config/emailConfig";
+import { generateOtp } from "../../config/otpGenerate";
 
 // Extend Express Request type
 declare module "express" {

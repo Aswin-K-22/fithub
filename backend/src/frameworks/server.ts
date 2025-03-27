@@ -5,7 +5,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import morgan from "morgan";
-import { signup, login  , verifyOtp ,logout, refreshToken ,resendOtp , getUser ,googleAuth} from "../adapters/controllers/authController";
+import { signup, login  , verifyOtp ,logout, refreshToken ,resendOtp , getUser ,googleAuth} from "../adapters/controllers/user/authController";
 import cookieParser from 'cookie-parser'
 import { authMiddleware } from "../adapters/middleware/authMiddleware";
 import { adminLogin } from "../adapters/controllers/admin/adminAuthController";

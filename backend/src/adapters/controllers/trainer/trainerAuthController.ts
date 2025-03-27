@@ -118,3 +118,29 @@ export const verifyTrainerOtp = async (req: Request, res: Response) => {
     res.status(400).json({ message: (error as Error).message });
   }
 };
+
+export const trainerLogout = async (req: Request, res: Response) => {
+  console.log("Trainer logout route called");
+  try {
+    const email = req.trainer?.email;
+    if (!email) {
+      res.status(400).json({ message: "Trainer email not found" });
+      return;
+    }
+    await trainerRepo.updateRefreshToken(email, null); // Clear refresh token
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+    res.status(200).json({ message: "Trainer logged out successfully" });
+  } catch (error) {
+    console.error("Trainer logout error:", error);
+    res.status(500).json({ message: (error as Error).message });
+  }
+};

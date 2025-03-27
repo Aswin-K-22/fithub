@@ -174,4 +174,11 @@ export const getTrainerMe = async () => {
   }
 };
 
+
+
+export const trainerLogout = async (email: string) => {
+  const response = await apiClient.post("/auth/trainer/logout", { email });
+  return response.data;
+};
+
 export default apiClient;

@@ -9,7 +9,7 @@ import { signup, login  , verifyOtp ,logout, refreshToken ,resendOtp , getUser ,
 import cookieParser from 'cookie-parser'
 import { authMiddleware } from "../adapters/middleware/authMiddleware";
 import { adminLogin } from "../adapters/controllers/admin/adminAuthController";
-import { getTrainer, trainerLogin ,verifyTrainerOtp} from "../adapters/controllers/trainer/trainerAuthController";
+import { getTrainer, trainerLogin ,trainerLogout,verifyTrainerOtp} from "../adapters/controllers/trainer/trainerAuthController";
 import { getAllUsers } from "../adapters/controllers/admin/userManagement";
 import { adminAuthMiddleware } from "../adapters/middleware/adminAuthMiddleware";
 import { addTrainer } from "../adapters/controllers/admin/TrainerManagement";
@@ -62,6 +62,7 @@ app.post('/api/admin/addTrainer' , addTrainer);
 
 app.post("/api/auth/trainer/login", trainerLogin);
 app.post("/api/auth/trainer/verify-otp", verifyTrainerOtp);
+app.post("/api/auth/trainer/logout", trainerAuthMiddleware, trainerLogout);
 
 
 // Protected Routes (require auth)

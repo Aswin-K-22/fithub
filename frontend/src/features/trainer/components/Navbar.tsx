@@ -1,10 +1,10 @@
-// src/components/Navbar.tsx
+// frontend/src/features/trainer/components/Navbar.tsx
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../../lib/redux/store";
 import { logout as logoutAction } from "../../../lib/redux/slices/authSlice";
-import { logout as logoutApi } from "../../../lib/api/authApi";
+import { trainerLogout } from "../../../lib/api/authApi"; // Updated import
 import { toast } from "react-toastify";
 
 const Navbar: React.FC = () => {
@@ -16,13 +16,13 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       if (user?.email) {
-        await logoutApi(user?.email);
+        await trainerLogout(user.email); // Use trainerLogout instead of logoutApi
         dispatch(logoutAction());
         toast.success("Logged out successfully!");
-        navigate("/auth?type=login");
+        navigate("/trainer/login"); // Redirect to trainer login
       }
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("Trainer logout failed:", error);
       toast.error("Logout failed—try again!");
     }
     setIsOpen(false);

@@ -14,7 +14,7 @@ import UserManagement from "./features/admin/pages/UserManagement";
 import Reports from "./features/admin/pages/Reports";
 import Trainers from "./features/admin/pages/TrainersManagement";
 import Gyms from "./features/admin/pages/Gyms";
-import TrainerDashboard from "./features/trainer/components/TrainerDashboard";
+import TrainerDashboard from "./features/trainer/pages/TrainerDashboard";
 import TrainerProfile from "./features/trainer/pages/TrainerProfile";
 import { AppDispatch, RootState } from "./lib/redux/store";
 import AdminLogin from "./features/admin/pages/AdminLogin";

@@ -1,11 +1,11 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../lib/redux/store";
-import Navbar from "./Navbar"; 
-import StatCard from "./StatCard";
-import SessionCard from "./SessionCard";
-import NotificationCard from "./NotificationCard";
-import ChatCard from "./ChatCard";
+import Navbar from "../components/Navbar"; 
+import StatCard from "../components/StatCard";
+import SessionCard from "../components/SessionCard";
+import NotificationCard from "../components/NotificationCard";
+import ChatCard from "../components/ChatCard";
 import ReactECharts from "echarts-for-react";
 import { EChartsOption } from "echarts";
 

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../lib/redux/store";
+import Navbar from "../components/Navbar"; 
 
 interface Trainer {
   name: string;
@@ -31,6 +32,7 @@ const TrainerProfile: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+           <Navbar />
       <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}
         <div className="relative rounded-lg bg-white shadow overflow-hidden mb-8">

@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User Model
+// User Model (Updated)
 model User {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   email         String         @unique
@@ -20,56 +21,54 @@ model User {
   otpExpires    DateTime?
   isVerified    Boolean        @default(false)
   refreshToken  String?
-  membershipId  String?        @db.ObjectId // Reference to a Membership model (optional)
-  fitnessProfile FitnessProfile? // Embedded document
-  workoutPlanId String?        @db.ObjectId // Reference to workoutPlans
-  progress      Progress[]      // Array of embedded progress logs
-  weeklySummary WeeklySummary[] // Array of embedded weekly summaries
+  membershipId  String?        @db.ObjectId // Current active membership
+  fitnessProfile FitnessProfile?
+  workoutPlanId String?        @db.ObjectId
+  progress      Progress[]
+  weeklySummary WeeklySummary[]
   profilePic    String?
+  memberships   Membership[]   @relation 
+  Bookings      Booking[]      @relation 
+  payments      Payment[]      @relation
 }
 
-// Embedded type for fitnessProfile
 type FitnessProfile {
-  goals       String[] // Array of goals
-  weight      Float?   // kg
-  height      Float?   // cm
-  level       String?  // "beginner", "intermediate", "advanced"
-  calorieGoal Float?   // Daily calorie burn target (kcal)
+  goals       String[]
+  weight      Float?
+  height      Float?
+  level       String?
+  calorieGoal Float?
   updatedAt   DateTime?
 }
 
-// Embedded type for progress
 type Progress {
   workoutDate         DateTime
   planId              String    @db.ObjectId
   exercisesCompleted  ExerciseCompleted[]
   totalDuration       Float?
   totalCaloriesBurned Float?
-  dailyDifficulty     String?   // "easy", "medium", "hard"
+  dailyDifficulty     String?
 }
 
-// Embedded type for exercisesCompleted within progress
 type ExerciseCompleted {
-  exerciseId   String  @db.ObjectId
-  name         String
-  sets         Int?
-  reps         Int?
-  weight       Float?
-  duration     Float?
-  difficulty   String? // "easy", "medium", "hard"
+  exerciseId     String  @db.ObjectId
+  name           String
+  sets           Int?
+  reps           Int?
+  weight         Float?
+  duration       Float?
+  difficulty     String?
   caloriesBurned Float?
 }
 
-// Embedded type for weeklySummary
 type WeeklySummary {
   weekStart          DateTime
   weekEnd            DateTime
   totalCaloriesBurned Float?
-  weeklyDifficulty    String? // "easy", "medium", "hard"
+  weeklyDifficulty    String?
 }
 
-
-// New Trainer model
+// Trainer Model (Updated)
 model Trainer {
   id             String          @id @default(auto()) @map("_id") @db.ObjectId
   name           String
@@ -84,25 +83,18 @@ model Trainer {
   personalDetails Json?
   certifications  Certification[]
   bio            String?
-  specialties    String[]        // e.g., ["strength", "cardio", "yoga"]
-  experienceLevel String?         // "junior", "senior", "expert"
+  specialties    String[]
+  experienceLevel String?
   clients        Client[]
   paymentDetails PaymentDetails?
   availability   Availability[]
-  gyms           String[]        @db.ObjectId // References to gyms collection
+  gyms           String[]        @db.ObjectId
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  bookings       Booking[]       @relation
+  payments       Payment[]       @relation
 }
 
-
-
-type Address {
-  street  String?
-  city    String?
-  country String?
-}
-
-// Embedded type for certifications
 type Certification {
   name          String
   issuer        String
@@ -110,19 +102,17 @@ type Certification {
   certificateId String
 }
 
-// Embedded type for clients
 type Client {
-  userId       String  @db.ObjectId // Reference to users._id
-  membershipId String? @db.ObjectId // Reference to memberships._id
+  userId       String  @db.ObjectId
+  membershipId String? @db.ObjectId
   startDate    DateTime
   active       Boolean
 }
 
-// Embedded type for paymentDetails
 type PaymentDetails {
-  method        String? // "per_client", "monthly_fixed", "hourly"
+  method        String?
   rate          Float?
-  currency      String? // e.g., "INR", "USD"
+  currency      String?
   paymentHistory PaymentHistory[]
 }
 
@@ -136,15 +126,13 @@ type PaymentHistory {
   hoursWorked  Float?
 }
 
-// Embedded type for availability
 type Availability {
-  day       String // e.g., "Monday"
-  startTime String // e.g., "08:00"
-  endTime   String // e.g., "12:00"
+  day       String
+  startTime String
+  endTime   String
 }
 
-
-//------------------------------------
+// WorkoutPlan Model
 model WorkoutPlan {
   id                  String         @id @default(auto()) @map("_id") @db.ObjectId
   title               String
@@ -178,31 +166,29 @@ type Exercise {
   estimatedCalories   Float?
 }
 
-
-
-
-// New Gym model
+// Gym Model
 model Gym {
   id                   String          @id @default(auto()) @map("_id") @db.ObjectId
   name                 String
-  type                 String          // "budget", "premium", "specialty"
+  type                 String
   description          String?
   address              GymAddress?
   contact              Contact?
   equipment            Equipment[]
   timeSlots            TimeSlot[]
   trainers             GymTrainer[]
-  suggestedPlan        String?         @db.ObjectId // Reference to WorkoutPlan
+  suggestedPlan        String?         @db.ObjectId
   facilities           Facilities?
   capacity             Capacity?
-  membershipCompatibility String[]     // e.g., ["basic", "platinum", "diamond"]
+  membershipCompatibility String[]
   images               GymImage[]
   ratings              Ratings?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
+  bookings             Booking[]       @relation
+
 }
 
-// Embedded type for address
 type GymAddress {
   street      String?
   city        String?
@@ -213,37 +199,32 @@ type GymAddress {
   lng Float?
 }
 
-// Embedded type for contact
 type Contact {
   phone   String?
   email   String?
   website String?
 }
 
-// Embedded type for equipment
 type Equipment {
-  type      String // e.g., "treadmill"
-  category  String // "basic", "electrical", "specialized"
+  type      String
+  category  String
   quantity  Int
-  condition String // "new", "used", "maintenance"
+  condition String
 }
 
-// Embedded type for timeSlots
 type TimeSlot {
-  day      String // e.g., "Monday"
-  open     String // e.g., "06:00"
-  close    String // e.g., "22:00"
+  day      String
+  open     String
+  close    String
   isClosed Boolean
 }
 
-// Embedded type for trainers
 type GymTrainer {
-  trainerId String  @db.ObjectId // Reference to Trainer
+  trainerId String  @db.ObjectId
   startDate DateTime
   active    Boolean
 }
 
-// Embedded type for facilities
 type Facilities {
   hasPool       Boolean
   hasSauna      Boolean
@@ -251,20 +232,17 @@ type Facilities {
   hasLockerRooms Boolean
 }
 
-// Embedded type for capacity
 type Capacity {
   max     Int
   current Int
 }
 
-// Embedded type for images
 type GymImage {
   url         String
   description String?
   uploadedAt  DateTime
 }
 
-// Embedded type for ratings
 type Ratings {
   average  Float?
   count    Int?
@@ -272,8 +250,79 @@ type Ratings {
 }
 
 type Review {
-  userId  String  @db.ObjectId // Reference to User
+  userId  String  @db.ObjectId
   rating  Int
   comment String?
   date    DateTime
+}
+
+// Membership Model (Updated)
+model Membership {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String    @db.ObjectId
+  plan         String
+  status       String
+  startDate    DateTime
+  endDate      DateTime
+  features     String[]
+  price        Float?
+  currency     String?
+  paymentStatus String?
+  paymentDate  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User?     @relation(fields: [userId], references: [id])
+  payments     Payment[] @relation
+}
+
+
+
+
+//----Booking
+
+model Booking {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @db.ObjectId // Reference to User
+  gymId      String    @db.ObjectId // Reference to Gym
+  trainerId  String?   @db.ObjectId // Optional: Reference to Trainer (Diamond plans)
+  slot       Slot      // Embedded: Specific time slot
+  status     String    // "pending", "confirmed", "cancelled", "completed"
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relationships
+  user       User?     @relation(fields: [userId], references: [id])
+  gym        Gym?      @relation(fields: [gymId], references: [id])
+  trainer    Trainer?  @relation(fields: [trainerId], references: [id])
+  payment    Payment?  @relation(name: "BookingPayment")
+}
+
+// Embedded type for slot
+type Slot {
+  date      DateTime // e.g., "2025-04-01"
+  startTime String   // e.g., "10:00" (24-hr format)
+  endTime   String   // e.g., "11:00"
+  duration  Int      // Minutes, e.g., 60
+}
+
+model Payment {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  type           String
+  userId         String?   @db.ObjectId
+  trainerId      String?   @db.ObjectId
+  membershipId   String?   @db.ObjectId
+  bookingId      String?   @db.ObjectId @unique
+  amount         Float
+  currency       String
+  paymentGateway String?
+  paymentId      String?
+  status         String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user          User?      @relation(fields: [userId], references: [id])
+  trainer       Trainer?   @relation(fields: [trainerId], references: [id])
+  membership    Membership? @relation(fields: [membershipId], references: [id])
+  booking       Booking?   @relation(name: "BookingPayment", fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction) // Explicit name
 }

@@ -144,3 +144,40 @@ export const trainerLogout = async (req: Request, res: Response) => {
     res.status(500).json({ message: (error as Error).message });
   }
 };
+
+
+export const resendTrainerOtp = async (req: Request, res: Response) => {
+  console.log("Resend Trainer OTP route called");
+  try {
+    const { email } = req.body;
+    console.log("Resend OTP for trainer:", email);
+
+    const trainer = await trainerRepo.findByEmail(email);
+    if (!trainer) {
+      res.status(400).json({ message: "Trainer not found" });
+      return;
+    }
+
+    const otp = generateOtp();
+    console.log("Generating new OTP for trainer...", otp);
+    await trainerRepo.updateOtp(email, otp);
+
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "FitHub Trainer OTP Verification",
+        text: `Your new OTP is ${otp}. It expires in 30 seconds.`,
+      });
+      console.log("New OTP email sent to trainer", otp);
+    } catch (emailError) {
+      console.error("Email send failed for trainer:", emailError);
+      console.log(`New OTP for trainer ${email}: ${otp}`);
+    }
+
+    res.status(200).json({ message: "New OTP sent to your email" });
+  } catch (error) {
+    console.error("Resend Trainer OTP error:", error);
+    res.status(400).json({ message: (error as Error).message });
+  }
+};

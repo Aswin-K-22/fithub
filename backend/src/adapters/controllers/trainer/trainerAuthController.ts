@@ -181,3 +181,41 @@ export const resendTrainerOtp = async (req: Request, res: Response) => {
     res.status(400).json({ message: (error as Error).message });
   }
 };
+
+
+export const getTrainerProfile = async (req: Request, res: Response) => {
+  try {
+    const email = req.trainer?.email;
+    if (!email) {
+      res.status(401).json({ message: "Trainer not authenticated" });
+      return;
+    }
+    const trainer = await trainerRepo.findByEmail(email);
+    if (!trainer) {
+      res.status(404).json({ message: "Trainer not found" });
+      return;
+    }
+    res.status(200).json({
+      trainer: {
+        id: trainer.id,
+        name: trainer.name,
+        email: trainer.email,
+        role: trainer.role,
+        profilePic: trainer.profilePic,
+        bio: trainer.bio,
+        specialties: trainer.specialties || [],
+        experienceLevel: trainer.experienceLevel,
+        certifications: trainer.certifications || [],
+        clients: trainer.clients || [],
+        paymentDetails: trainer.paymentDetails || {},
+        availability: trainer.availability || [],
+        gyms: trainer.gyms || [],
+        createdAt: trainer.createdAt?.toISOString(),
+        updatedAt: trainer.updatedAt?.toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Get trainer error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -2,6 +2,7 @@
 import axios from "axios";
 import { AddTrainerData } from "../../entities/AddTrainerData";
 import { UserProfileData } from "../../entities/User";
+import { TrainerProfileData } from "../../entities/Trainer";
 
 const apiClient = axios.create({
   baseURL: "/api",
@@ -193,4 +194,9 @@ export const trainerLogout = async (email: string) => {
   return response.data;
 };
 
+
+export const getTrainerProfile = async (): Promise<{ trainer: TrainerProfileData }> => {
+  const response = await apiClient.get("/auth/user-trainer");
+  return response.data; 
+};
 export default apiClient;

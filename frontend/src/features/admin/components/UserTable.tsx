@@ -8,7 +8,7 @@ interface UserTableProps {
 
 const UserTable: React.FC<UserTableProps> = ({ users }) => {
   const getMembershipStyle = (membership: string | undefined) => {
-    const value = membership || "N/A"; // Use "N/A" if undefined
+    const value = membership || "N/A";
     switch (value) {
       case "Premium":
         return "bg-blue-100 text-blue-800";
@@ -17,12 +17,12 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
       case "Basic":
         return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800"; // Applies to "N/A" too
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusStyle = (status: string | undefined) => {
-    const value = status || "free-plan"; // Use "free-plan" if undefined
+    const value = status || "free-plan";
     switch (value) {
       case "Active":
         return "bg-green-100 text-green-800";
@@ -31,7 +31,7 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
       case "Expiring Soon":
         return "bg-yellow-100 text-yellow-800";
       default:
-        return "bg-gray-100 text-gray-800"; // Applies to "free-plan" too
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -41,28 +41,32 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
         <div className="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:space-x-4 w-full">
           <div className="flex-1 relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="fas fa-search text-gray-400"></i>
+              <i className="fas fa-search text-gray-400 text-sm"></i> {/* Adjusted size */}
             </div>
             <input
               type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
               placeholder="Search users..."
             />
           </div>
-          <div className="flex space-x-4 sm:flex-row flex-col sm:w-auto w-full">
-            <select className="block w-full rounded-md border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600">
+          <div className="flex space-x-4 sm:flex-row flex-col sm:w-auto w-full gap-4 sm:gap-0">
+            <select
+              className="block w-full sm:w-40 py-2 px-3 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600"
+            >
               <option>All Status</option>
               <option>Active</option>
               <option>Suspended</option>
               <option>Expiring Soon</option>
-              <option>free-plan</option> {/* Add default status */}
+              <option>free-plan</option>
             </select>
-            <select className="block w-full rounded-md border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600">
+            <select
+              className="block w-full sm:w-40 py-2 px-3 border border-gray-300 rounded-md text-sm text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600"
+            >
               <option>All Memberships</option>
               <option>Basic</option>
               <option>Premium</option>
               <option>Elite</option>
-              <option>N/A</option> {/* Add default membership */}
+              <option>N/A</option>
             </select>
             <button className="rounded-md bg-indigo-600 px-4 py-2 text-white text-sm hover:bg-indigo-700 transition duration-150 ease-in-out w-full sm:w-auto">
               <i className="fas fa-filter mr-2"></i>Apply Filters
@@ -149,7 +153,8 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">1</span> to <span className="font-medium">10</span> of <span className="font-medium">{users.length}</span> results
+              Showing <span className="font-medium">1</span> to <span className="font-medium">10</span> of{" "}
+              <span className="font-medium">{users.length}</span> results
             </p>
           </div>
           <div>

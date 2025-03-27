@@ -2,7 +2,7 @@ import React, { useState, useEffect, FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { login } from "../../../lib/redux/slices/authSlice";
-import { verifyOtp, resendOtp, trainerLoginVerifyOtp } from "../../../lib/api/authApi";
+import { verifyOtp, resendOtp, trainerLoginVerifyOtp, resendTrainerOtp } from "../../../lib/api/authApi";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import { toast } from "react-toastify";
@@ -88,8 +88,13 @@ const VerifyOtp: React.FC = () => {
 
   const handleResendOtp = async () => {
     try {
-      await resendOtp(email);
-      toast.success("OTP resent to your email!");
+      if (purpose === "trainer-login") {
+        await resendTrainerOtp(email);
+        toast.success("OTP resent to your email!");
+      } else {
+        await resendOtp(email);
+        toast.success("OTP resent to your email!");
+      }
       setTimeLeft(30);
       setCanResend(false);
       setOtp("");

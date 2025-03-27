@@ -1,19 +1,20 @@
-// src/entities/trainer.ts
+// backend/src/entities/trainer.ts
 export interface Trainer {
   id: string;
   name: string;
   email: string;
   password: string;
-  role : string;
+  role: string;
+  profilePic?: string; // Matches Prisma schema
   isVerified?: boolean;
   otp?: string | null;
   otpExpires?: Date | null;
   refreshToken?: string | null;
-  personalDetails?: any; // Use any to match JsonValue, or define a more permissive type
+  personalDetails?: Record<string, any>; // Json type from Prisma
   certifications?: {
     name: string;
     issuer: string;
-    dateEarned: Date;
+    dateEarned: Date; // Prisma returns Date for DateTime
     certificateId: string;
   }[];
   bio?: string | null;
@@ -22,7 +23,7 @@ export interface Trainer {
   clients?: {
     userId: string;
     membershipId?: string | null;
-    startDate: Date;
+    startDate: Date; // Prisma returns Date
     active: boolean;
   }[];
   paymentDetails?: {
@@ -32,7 +33,7 @@ export interface Trainer {
     paymentHistory?: {
       paymentId: string;
       amount: number;
-      date: Date;
+      date: Date; // Prisma returns Date
       periodStart?: Date | null;
       periodEnd?: Date | null;
       clientCount?: number | null;
@@ -45,8 +46,8 @@ export interface Trainer {
     endTime: string;
   }[];
   gyms?: string[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date; // Prisma returns Date
+  updatedAt?: Date; // Prisma returns Date
 }
 
 export interface AddTrainerData {
@@ -57,7 +58,6 @@ export interface AddTrainerData {
   experienceLevel: string;
   bio: string;
   phone: string;
- 
 }
 
 export default Trainer;

@@ -144,3 +144,78 @@ export const trainerLogout = async (req: Request, res: Response) => {
     res.status(500).json({ message: (error as Error).message });
   }
 };
+
+
+export const resendTrainerOtp = async (req: Request, res: Response) => {
+  console.log("Resend Trainer OTP route called");
+  try {
+    const { email } = req.body;
+    console.log("Resend OTP for trainer:", email);
+
+    const trainer = await trainerRepo.findByEmail(email);
+    if (!trainer) {
+      res.status(400).json({ message: "Trainer not found" });
+      return;
+    }
+
+    const otp = generateOtp();
+    console.log("Generating new OTP for trainer...", otp);
+    await trainerRepo.updateOtp(email, otp);
+
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "FitHub Trainer OTP Verification",
+        text: `Your new OTP is ${otp}. It expires in 30 seconds.`,
+      });
+      console.log("New OTP email sent to trainer", otp);
+    } catch (emailError) {
+      console.error("Email send failed for trainer:", emailError);
+      console.log(`New OTP for trainer ${email}: ${otp}`);
+    }
+
+    res.status(200).json({ message: "New OTP sent to your email" });
+  } catch (error) {
+    console.error("Resend Trainer OTP error:", error);
+    res.status(400).json({ message: (error as Error).message });
+  }
+};
+
+
+export const getTrainerProfile = async (req: Request, res: Response) => {
+  try {
+    const email = req.trainer?.email;
+    if (!email) {
+      res.status(401).json({ message: "Trainer not authenticated" });
+      return;
+    }
+    const trainer = await trainerRepo.findByEmail(email);
+    if (!trainer) {
+      res.status(404).json({ message: "Trainer not found" });
+      return;
+    }
+    res.status(200).json({
+      trainer: {
+        id: trainer.id,
+        name: trainer.name,
+        email: trainer.email,
+        role: trainer.role,
+        profilePic: trainer.profilePic,
+        bio: trainer.bio,
+        specialties: trainer.specialties || [],
+        experienceLevel: trainer.experienceLevel,
+        certifications: trainer.certifications || [],
+        clients: trainer.clients || [],
+        paymentDetails: trainer.paymentDetails || {},
+        availability: trainer.availability || [],
+        gyms: trainer.gyms || [],
+        createdAt: trainer.createdAt?.toISOString(),
+        updatedAt: trainer.updatedAt?.toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Get trainer error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

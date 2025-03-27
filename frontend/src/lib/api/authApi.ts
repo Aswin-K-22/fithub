@@ -1,6 +1,8 @@
 /* eslint-disable no-useless-catch */
 import axios from "axios";
 import { AddTrainerData } from "../../entities/AddTrainerData";
+import { UserProfileData } from "../../entities/User";
+import { TrainerProfileData } from "../../entities/Trainer";
 
 const apiClient = axios.create({
   baseURL: "/api",
@@ -107,6 +109,12 @@ export const getMe = async () => {
   }
 };
 
+export const getUserProfile = async (): Promise<{ user: UserProfileData }> => {
+  const response = await apiClient.get("/api/auth/user");
+  return response.data; 
+};
+
+
 export const refreshToken = async () => {
   try {
     const response = await refreshClient.post("/auth/refresh-token");
@@ -175,10 +183,20 @@ export const getTrainerMe = async () => {
 };
 
 
+export const resendTrainerOtp = async (email: string): Promise<void> => {
+  const response = await apiClient.post("/auth/trainer/resend-otp", { email });
+  return response.data;
+};
+
 
 export const trainerLogout = async (email: string) => {
   const response = await apiClient.post("/auth/trainer/logout", { email });
   return response.data;
 };
 
+
+export const getTrainerProfile = async (): Promise<{ trainer: TrainerProfileData }> => {
+  const response = await apiClient.get("/auth/user-trainer");
+  return response.data; 
+};
 export default apiClient;

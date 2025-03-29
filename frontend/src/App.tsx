@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<{ element: JSX.Element; allowedRoles: string[] }>
         navigate("/admin/login", { replace: true, state: { from: location } });
       } else if (location.pathname.startsWith("/trainer")) {
         navigate("/trainer/login", { replace: true, state: { from: location } });
-      } else {
+      } else if (location.pathname !== "/") { 
         navigate("/auth", { replace: true, state: { from: location } });
       }
     } else if (isAuthenticated && !allowedRoles.includes(userRole)) {
@@ -53,17 +53,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      // Skip if on auth-related pages
       if (
         location.pathname.includes("login") ||
         location.pathname === "/verify-otp" ||
-        location.pathname.includes("google/callback")
+        location.pathname.includes("google/callback") ||
+        location.pathname === "/" 
       ) {
-        console.log("Skipping session check - on auth page");
+        console.log("Skipping session check - on auth page or landing page");
         return;
       }
 
-      // Skip if already authenticated and on a valid route
       if (isAuthenticated && user) {
         const validRoutes: { [key: string]: string[] } = {
           admin: ["/admin"],
@@ -89,7 +88,6 @@ const App: React.FC = () => {
         console.log("Session check user:", userData);
         dispatch(login(userData));
 
-        // Redirect if not on the correct path
         if (userData.role === "admin" && !location.pathname.startsWith("/admin")) {
           navigate("/admin/dashboard", { replace: true });
         } else if (userData.role === "trainer" && !location.pathname.startsWith("/trainer")) {
@@ -104,14 +102,14 @@ const App: React.FC = () => {
           navigate("/trainer/login", { replace: true });
         } else if (location.pathname.startsWith("/admin")) {
           navigate("/admin/login", { replace: true });
-        } else {
+        } else if (location.pathname !== "/") { 
           navigate("/auth", { replace: true });
         }
       }
     };
 
     checkSession();
-  }, [location.pathname, dispatch, navigate ]); 
+  }, [location.pathname, dispatch, navigate]);
 
   console.log("App render - isAuthenticated:", isAuthenticated, "user.role:", user?.role);
 

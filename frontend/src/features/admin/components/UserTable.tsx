@@ -1,4 +1,3 @@
-// src/features/admin/components/UserTable.tsx
 import React from "react";
 import { User } from "../../../entities/User";
 
@@ -183,3 +182,4 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
 };
 
 export default UserTable;
+

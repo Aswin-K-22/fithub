@@ -22,13 +22,13 @@ export interface Trainer {
     certifications?: {
       name: string;
       issuer: string;
-      dateEarned: string; // Converted from DateTime to ISO string
+      dateEarned: string; 
       certificateId: string;
     }[];
     clients?: {
       userId: string;
       membershipId?: string;
-      startDate: string; // ISO string
+      startDate: string; 
       active: boolean;
     }[];
     paymentDetails?: {
@@ -38,7 +38,7 @@ export interface Trainer {
       paymentHistory?: {
         paymentId: string;
         amount: number;
-        date: string; // ISO string
+        date: string; 
         periodStart?: string;
         periodEnd?: string;
         clientCount?: number;
@@ -51,6 +51,6 @@ export interface Trainer {
       endTime: string;
     }[];
     gyms?: string[];
-    createdAt?: string; // ISO string
-    updatedAt?: string; // ISO string
+    createdAt?: string;
+    updatedAt?: string; 
   }

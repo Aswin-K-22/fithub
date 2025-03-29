@@ -1,4 +1,3 @@
-// frontend/src/features/user/pages/UserProfile.tsx
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -18,11 +17,10 @@ const UserProfile: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await getUserProfile(); // response is { user: UserProfileData }
-        setProfileData(response.user); // Extract the user object
+        const response = await getUserProfile(); 
+        setProfileData(response.user); 
       } catch (error) {
         console.error("Failed to fetch user profile:", error);
-        // Fallback to default flat data (no 'user' wrapper)
         setProfileData({
           id: user?.id || "default-id",
           email: user?.email || "user@example.com",
@@ -32,8 +30,8 @@ const UserProfile: React.FC = () => {
           fitnessProfile: {},
           progress: [],
           weeklySummary: [],
-          profilePic: undefined, // Optional
-          workoutPlanId: undefined, // Optional
+          profilePic: undefined, 
+          workoutPlanId: undefined, 
         });
       } finally {
         setLoading(false);

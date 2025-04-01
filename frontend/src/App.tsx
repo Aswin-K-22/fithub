@@ -21,6 +21,8 @@ import AdminLogin from "./features/admin/pages/AdminLogin";
 import TrainerLogin from "./features/trainer/pages/TrainerLogin";
 import AddTrainer from "./features/admin/pages/AddTrainer";
 import UserProfile from "./features/user/pages/UserProfile";
+import AddGymForm from "./features/admin/pages/AddGymForm";
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProtectedRoute: React.FC<{ element: JSX.Element; allowedRoles: string[] }> = ({ element, allowedRoles }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -37,7 +39,7 @@ const ProtectedRoute: React.FC<{ element: JSX.Element; allowedRoles: string[] }>
       } else if (location.pathname !== "/") { 
         navigate("/auth", { replace: true, state: { from: location } });
       }
-    } else if (isAuthenticated && !allowedRoles.includes(userRole)) {
+    } else if (isAuthenticated && !allowedRoles.includes(userRole) ) {
       navigate("/", { replace: true });
     }
   }, [isAuthenticated, userRole, location, navigate, allowedRoles]);
@@ -132,6 +134,7 @@ const App: React.FC = () => {
               <Route path="trainers" element={<Trainers />} />
               <Route path="trainers/add" element={<AddTrainer />} />
               <Route path="gyms" element={<Gyms />} />
+              <Route path="gyms/add" element={<AddGymForm />} />
               <Route path="earnings" element={<div>Earnings Page</div>} />
               <Route path="subscriptions" element={<div>Subscriptions Page</div>} />
               <Route path="ai-training" element={<div>AI Training Page</div>} />

@@ -179,10 +179,10 @@ const Auth: React.FC = () => {
 
   const handleGoogleLogin = useCallback(() => {
     console.log("Google login initiated");
-    const googleWindow = window as GoogleWindow;
-    const google = googleWindow.google;
-    if (google) {
-      google.accounts.oauth2
+    const googleWindow = window as unknown as GoogleWindow;
+  
+    if (googleWindow.google && googleWindow.google.accounts) {
+      googleWindow.google.accounts.oauth2
         .initCodeClient({
           client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
           scope: "email profile",
@@ -192,7 +192,7 @@ const Auth: React.FC = () => {
         .requestCode();
     } else {
       console.error("Google SDK not loaded");
-      toast.error("Google SDK not loaded");
+      toast.error("Google SDK not loaded. Please try again later.");
     }
   }, []);
 

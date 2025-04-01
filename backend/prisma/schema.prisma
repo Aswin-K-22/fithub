@@ -166,27 +166,34 @@ type Exercise {
   estimatedCalories   Float?
 }
 
-// Gym Model
 model Gym {
-  id                   String          @id @default(auto()) @map("_id") @db.ObjectId
-  name                 String
-  type                 String
-  description          String?
-  address              GymAddress?
-  contact              Contact?
-  equipment            Equipment[]
-  timeSlots            TimeSlot[]
-  trainers             GymTrainer[]
-  suggestedPlan        String?         @db.ObjectId
-  facilities           Facilities?
-  capacity             Capacity?
+  id                      String          @id @default(auto()) @map("_id") @db.ObjectId
+  name                    String
+  type                    String          // e.g., "Premium", "Basic", "Diamond"
+  description             String?
+  address                 GymAddress?
+  contact                 Contact?
+  equipment               Equipment[]
+  schedule                GymSchedule[]   // Single entry for daily hours + slot rules
+  trainers                GymTrainer[]
+  suggestedPlan           String?         @db.ObjectId
+  facilities              Facilities?
+  maxCapacity             Int             // Daily max bookings (optional ceiling)
   membershipCompatibility String[]
-  images               GymImage[]
-  ratings              Ratings?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  bookings             Booking[]       @relation
+  images                  GymImage[]
+  ratings                 Ratings?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  bookings                Booking[]       @relation
+}
 
+type GymSchedule {
+  dayOfWeek    String    // "All Days" for your case
+  startTime    String    // "06:00"
+  endTime      String    // "22:00"
+  isClosed     Boolean   // false
+  slotDuration Int       // 60 (1-hour slots)
+  slotCapacity Int       // e.g., 40 (max bookings per slot)
 }
 
 type GymAddress {
@@ -195,8 +202,8 @@ type GymAddress {
   state       String?
   country     String?
   postalCode  String?
-  lat Float?
-  lng Float?
+  lat         Float?
+  lng         Float?
 }
 
 type Contact {
@@ -212,29 +219,16 @@ type Equipment {
   condition String
 }
 
-type TimeSlot {
-  day      String
-  open     String
-  close    String
-  isClosed Boolean
-}
-
 type GymTrainer {
   trainerId String  @db.ObjectId
-  startDate DateTime
   active    Boolean
 }
 
 type Facilities {
-  hasPool       Boolean
-  hasSauna      Boolean
-  hasParking    Boolean
+  hasPool        Boolean
+  hasSauna       Boolean
+  hasParking     Boolean
   hasLockerRooms Boolean
-}
-
-type Capacity {
-  max     Int
-  current Int
 }
 
 type GymImage {
@@ -283,27 +277,25 @@ model Membership {
 
 model Booking {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String    @db.ObjectId // Reference to User
-  gymId      String    @db.ObjectId // Reference to Gym
-  trainerId  String?   @db.ObjectId // Optional: Reference to Trainer (Diamond plans)
-  slot       Slot      // Embedded: Specific time slot
+  userId     String    @db.ObjectId
+  gymId      String    @db.ObjectId
+  trainerId  String?   @db.ObjectId
+  slot       Slot
   status     String    // "pending", "confirmed", "cancelled", "completed"
+  qrCode     String    // Unique QR code or pass identifier
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-
-  // Relationships
   user       User?     @relation(fields: [userId], references: [id])
   gym        Gym?      @relation(fields: [gymId], references: [id])
   trainer    Trainer?  @relation(fields: [trainerId], references: [id])
   payment    Payment?  @relation(name: "BookingPayment")
 }
 
-// Embedded type for slot
 type Slot {
   date      DateTime // e.g., "2025-04-01"
-  startTime String   // e.g., "10:00" (24-hr format)
+  startTime String   // e.g., "10:00"
   endTime   String   // e.g., "11:00"
-  duration  Int      // Minutes, e.g., 60
+  duration  Int      // 60 (minutes)
 }
 
 model Payment {

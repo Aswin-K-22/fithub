@@ -4,10 +4,10 @@ interface StatCardProps {
   title: string;
   value: string | number;
   icon: string;
-  percentage?: string; // Optional for dashboard
-  color?: string; // For dashboard (text color)
-  bgColor?: string; // For trainers (background color)
-  textColor?: string; // For trainers (icon/text color)
+  percentage?: string;
+  color?: string; 
+  bgColor?: string; 
+  textColor?: string; 
 }
 
 const StatCard: React.FC<StatCardProps> = ({

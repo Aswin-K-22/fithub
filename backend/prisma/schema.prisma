@@ -93,6 +93,8 @@ model Trainer {
   updatedAt      DateTime        @updatedAt
   bookings       Booking[]       @relation
   payments       Payment[]       @relation
+  phone String?
+  ratings        Ratings?
 }
 
 type Certification {
@@ -168,32 +170,24 @@ type Exercise {
 
 model Gym {
   id                      String          @id @default(auto()) @map("_id") @db.ObjectId
-  name                    String
-  type                    String          // e.g., "Premium", "Basic", "Diamond"
+  name                    String          @unique
+  type                    String
   description             String?
   address                 GymAddress?
   contact                 Contact?
   equipment               Equipment[]
-  schedule                GymSchedule[]   // Single entry for daily hours + slot rules
+  schedule                GymSchedule[]
   trainers                GymTrainer[]
   suggestedPlan           String?         @db.ObjectId
   facilities              Facilities?
-  maxCapacity             Int             // Daily max bookings (optional ceiling)
+  maxCapacity             Int
   membershipCompatibility String[]
   images                  GymImage[]
   ratings                 Ratings?
   createdAt               DateTime        @default(now())
   updatedAt               DateTime        @updatedAt
   bookings                Booking[]       @relation
-}
-
-type GymSchedule {
-  dayOfWeek    String    // "All Days" for your case
-  startTime    String    // "06:00"
-  endTime      String    // "22:00"
-  isClosed     Boolean   // false
-  slotDuration Int       // 60 (1-hour slots)
-  slotCapacity Int       // e.g., 40 (max bookings per slot)
+  
 }
 
 type GymAddress {
@@ -219,18 +213,28 @@ type Equipment {
   condition String
 }
 
+type GymSchedule {
+  dayOfWeek    String
+  startTime    String
+  endTime      String
+  isClosed     Boolean
+  slotDuration Int
+  slotCapacity Int
+}
+
 type GymTrainer {
   trainerId String  @db.ObjectId
   active    Boolean
 }
 
 type Facilities {
-  hasPool        Boolean
-  hasSauna       Boolean
-  hasParking     Boolean
-  hasLockerRooms Boolean
+  hasPool        Boolean?
+  hasSauna       Boolean?
+  hasParking     Boolean?
+  hasLockerRooms Boolean?
+  hasWifi        Boolean?
+  hasShowers     Boolean?
 }
-
 type GymImage {
   url         String
   description String?
@@ -238,8 +242,8 @@ type GymImage {
 }
 
 type Ratings {
-  average  Float?
-  count    Int?
+  average  Float?  @default(0.0)
+  count    Int?    @default(0)
   reviews  Review[]
 }
 
@@ -247,14 +251,14 @@ type Review {
   userId  String  @db.ObjectId
   rating  Int
   comment String?
-  date    DateTime
+  date    DateTime @default(now())
 }
 
 // Membership Model (Updated)
 model Membership {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
   userId       String    @db.ObjectId
-  plan         String
+  plan         MembershipPlan
   status       String
   startDate    DateTime
   endDate      DateTime
@@ -271,7 +275,11 @@ model Membership {
 }
 
 
-
+enum MembershipPlan {
+  Basic
+  Premium
+  Diamond
+}
 
 //----Booking
 

@@ -1,46 +1,44 @@
-import React, { useState } from "react";
+// features/admin/pages/Gyms.tsx
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatCard from "../components/StatCard";
 import { Gym } from "../../../entities/Gym";
-
+import { gymsList } from "../../../lib/api/authApi";
 
 const Gyms: React.FC = () => {
-  const gyms: Gym[] = [
-    {
-      name: "PowerFit Elite",
-      description: "Premium Facility",
-      location: "New York, NY",
-      subLocation: "Downtown",
-      contact: "+1 (555) 123-4567",
-      email: "info@powerfit.com",
-      rating: 4.8,
-      status: "Active",
-      image:
-        "https://creatie.ai/ai/api/search-image?query=A modern gym interior with state-of-the-art equipment, clean and well-lit space, featuring weight machines and cardio equipment against a minimalist background&width=40&height=40&orientation=squarish&flag=72d77b7d-9dd8-4671-bb54-08e95e17780b",
-    },
-    {
-      name: "FitZone Central",
-      description: "Standard Facility",
-      location: "Los Angeles, CA",
-      subLocation: "Beverly Hills",
-      contact: "+1 (555) 987-6543",
-      email: "contact@fitzone.com",
-      rating: 4.2,
-      status: "Pending",
-      image:
-        "https://creatie.ai/ai/api/search-image?query=A modern gym interior with focus on functional training area, featuring kettlebells, resistance bands, and open space for workouts against a minimalist background&width=40&height=40&orientation=squarish&flag=7f343262-f0db-4cb2-bb65-35e150093c6d",
-    },
-  ];
-
-  const stats = {
-    totalGyms: 248,
-    pendingApprovals: 18,
-    activeMembers: 15248,
-    monthlyRevenue: 86429,
-  };
-
+  const [gyms, setGyms] = useState<Gym[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalGyms, setTotalGyms] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedGym, setSelectedGym] = useState<Gym | null>(null);
+
+  const backendUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  const limit = 2; // 2 gyms per page
+
+  // Fetch gyms from backend
+  useEffect(() => {
+    const fetchGyms = async () => {
+      try {
+        const {gyms ,total,totalPages } = await gymsList(page,limit);
+        setGyms(gyms);
+        setTotalGyms(total);
+        setTotalPages(totalPages);
+
+       
+      } catch (error) {
+        console.error("Error fetching gyms:", error);
+      }
+    };
+    fetchGyms();
+  }, [page]);
+
+  const stats = {
+    totalGyms, // Dynamic from DB
+    pendingApprovals: 18, // Static for now
+    activeMembers: 15248, // Static for now
+    monthlyRevenue: 86429, // Static for now
+  };
 
   const openModal = (gym: Gym) => {
     setSelectedGym(gym);
@@ -50,6 +48,12 @@ const Gyms: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedGym(null);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
   };
 
   return (
@@ -92,7 +96,6 @@ const Gyms: React.FC = () => {
         </div>
       </div>
 
-      {/* Updated Search and Filters Section */}
       <div className="bg-white shadow rounded-lg mb-8">
         <div className="px-4 py-5 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -109,20 +112,8 @@ const Gyms: React.FC = () => {
               </div>
             </div>
             <div className="mt-4 sm:mt-0 sm:ml-4 flex items-center space-x-3">
-              <select className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-custom focus:border-custom sm:text-sm">
-                <option>All Status</option>
-                <option>Active</option>
-                <option>Pending</option>
-                <option>Suspended</option>
-              </select>
-              <select className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-custom focus:border-custom sm:text-sm">
-                <option>Rating: All</option>
-                <option>5 Stars</option>
-                <option>4+ Stars</option>
-                <option>3+ Stars</option>
-              </select>
               <Link
-                to="/admin/gyms/add"
+                to="/admin/gym/add"
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-custom hover:bg-custom-dark rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-custom"
               >
                 <i className="fas fa-plus mr-2"></i>
@@ -133,7 +124,6 @@ const Gyms: React.FC = () => {
         </div>
       </div>
 
-      {/* Rest of the Gyms.tsx content (table and modal) remains unchanged */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -143,17 +133,20 @@ const Gyms: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {gyms.map((gym) => (
-                <tr key={gym.email}>
+                <tr key={gym.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <img className="h-10 w-10 rounded-lg object-cover" src={gym.image} alt={gym.name} />
+                        <img
+                          className="h-10 w-10 rounded-lg object-cover"
+                          src={`${backendUrl}${gym.images[0]?.url || "/default-gym.jpg"}`}
+                          alt={gym.name}
+                        />
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{gym.name}</div>
@@ -162,45 +155,38 @@ const Gyms: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{gym.location}</div>
-                    <div className="text-sm text-gray-500">{gym.subLocation}</div>
+                    <div className="text-sm text-gray-900">{gym.address?.city || "N/A"}</div>
+                    <div className="text-sm text-gray-500">{gym.address?.state || "N/A"}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{gym.contact}</div>
-                    <div className="text-sm text-gray-500">{gym.email}</div>
+                    <div className="text-sm text-gray-900">{gym.contact?.phone || "N/A"}</div>
+                    <div className="text-sm text-gray-500">{gym.contact?.email || "N/A"}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-900">{gym.rating}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {gym.ratings?.average || "N/A"}
+                      </span>
+                      {/* Static rating display for now */}
                       <div className="ml-2 flex text-yellow-400">
-                        {Array(Math.floor(gym.rating)).fill(<i className="fas fa-star"></i>)}
-                        {gym.rating % 1 !== 0 && <i className="fas fa-star-half-alt"></i>}
-                        {Array(5 - Math.ceil(gym.rating)).fill(<i className="far fa-star"></i>)}
+                        {gym.ratings?.average
+                          ? Array(Math.floor(gym.ratings.average)).fill(<i className="fas fa-star"></i>)
+                          : null}
+                        {gym.ratings?.average && gym.ratings.average % 1 !== 0 ? (
+                          <i className="fas fa-star-half-alt"></i>
+                        ) : null}
+                        {gym.ratings?.average
+                          ? Array(5 - Math.ceil(gym.ratings.average)).fill(<i className="far fa-star"></i>)
+                          : null}
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        gym.status === "Active"
-                          ? "bg-green-100 text-green-800"
-                          : gym.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {gym.status}
-                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-3">
                       <button className="text-custom hover:text-custom-dark">
                         <i className="fas fa-edit"></i>
                       </button>
-                      <button
-                        className="text-gray-400 hover:text-gray-500"
-                        onClick={() => openModal(gym)}
-                      >
+                      <button className="text-gray-400 hover:text-gray-500" onClick={() => openModal(gym)}>
                         <i className="fas fa-eye"></i>
                       </button>
                       <button className="text-red-400 hover:text-red-500">
@@ -218,19 +204,36 @@ const Gyms: React.FC = () => {
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">1</span> to <span className="font-medium">10</span> of{" "}
-                  <span className="font浏览-medium">{stats.totalGyms}</span> results
+                  Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+                  <span className="font-medium">{Math.min(page * limit, totalGyms)}</span> of{" "}
+                  <span className="font-medium">{totalGyms}</span> results
                 </p>
               </div>
               <div>
                 <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                  <button
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  >
                     <i className="fas fa-chevron-left"></i>
                   </button>
-                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-custom text-sm font-medium text-white">1</button>
-                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">2</button>
-                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">3</button>
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => handlePageChange(p)}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+                        p === page ? "bg-custom text-white" : "bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page === totalPages}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  >
                     <i className="fas fa-chevron-right"></i>
                   </button>
                 </nav>
@@ -255,7 +258,7 @@ const Gyms: React.FC = () => {
             <div className="p-6">
               <div className="flex space-x-4 mb-6">
                 <img
-                  src={selectedGym.image.replace("width=40&height=40", "width=300&height=200")}
+                  src={`${backendUrl}${selectedGym.images[0]?.url || "/default-gym.jpg"}`}
                   alt={selectedGym.name}
                   className="w-1/2 h-48 object-cover rounded-lg"
                 />
@@ -264,41 +267,55 @@ const Gyms: React.FC = () => {
                   <p className="text-gray-600">{selectedGym.description}</p>
                   <div className="flex items-center space-x-2">
                     <i className="fas fa-map-marker-alt text-custom"></i>
-                    <span className="text-gray-600">{`${selectedGym.location}, ${selectedGym.subLocation}`}</span>
+                    <span className="text-gray-600">{`${selectedGym.address?.city || "N/A"}, ${
+                      selectedGym.address?.state || "N/A"
+                    }`}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <i className="fas fa-phone text-custom"></i>
-                    <span className="text-gray-600">{selectedGym.contact}</span>
+                    <span className="text-gray-600">{selectedGym.contact?.phone || "N/A"}</span>
                   </div>
                 </div>
               </div>
               <div className="border-t border-gray-200 pt-6">
                 <h5 className="font-semibold mb-4">Facilities</h5>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <i className="fas fa-dumbbell text-custom"></i>
-                    <span>Weight Training</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <i className="fas fa-running text-custom"></i>
-                    <span>Cardio Zone</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <i className="fas fa-hot-tub text-custom"></i>
-                    <span>Sauna</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <i className="fas fa-swimming-pool text-custom"></i>
-                    <span>Swimming Pool</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <i className="fas fa-user-friends text-custom"></i>
-                    <span>Group Classes</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <i className="fas fa-parking text-custom"></i>
-                    <span>Parking</span>
-                  </div>
+                  {selectedGym.facilities?.hasPool && (
+                    <div className="flex items-center space-x-2">
+                      <i className="fas fa-swimming-pool text-custom"></i>
+                      <span>Swimming Pool</span>
+                    </div>
+                  )}
+                  {selectedGym.facilities?.hasSauna && (
+                    <div className="flex items-center space-x-2">
+                      <i className="fas fa-hot-tub text-custom"></i>
+                      <span>Sauna</span>
+                    </div>
+                  )}
+                  {selectedGym.facilities?.hasParking && (
+                    <div className="flex items-center space-x-2">
+                      <i className="fas fa-parking text-custom"></i>
+                      <span>Parking</span>
+                    </div>
+                  )}
+                  {selectedGym.facilities?.hasLockerRooms && (
+                    <div className="flex items-center space-x-2">
+                      <i className="fas fa-lock text-custom"></i>
+                      <span>Locker Rooms</span>
+                    </div>
+                  )}
+                  {selectedGym.facilities?.hasWifi && (
+                    <div className="flex items-center space-x-2">
+                      <i className="fas fa-wifi text-custom"></i>
+                      <span>Wifi</span>
+                    </div>
+                  )}
+                  {selectedGym.facilities?.hasShowers && (
+                    <div className="flex items-center space-x-2">
+                      <i className="fas fa-shower text-custom"></i>
+                      <span>Showers</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 import { addTrainer } from "../../../lib/api/authApi";
+import Select from "react-select";
 
 const AddTrainer: React.FC = () => {
   const navigate = useNavigate();
@@ -88,7 +89,7 @@ const AddTrainer: React.FC = () => {
         name,
         email,
         password,
-        specialties,
+        specialties, // Already an array, passed as-is
         experienceLevel,
         bio,
         phone,
@@ -108,7 +109,7 @@ const AddTrainer: React.FC = () => {
     const { name, value } = e.target;
     if (e.target instanceof HTMLSelectElement && e.target.multiple) {
       const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
-      setFormData((prev) => ({ ...prev, [name]: selectedOptions }));
+      setFormData((prev) => ({ ...prev, specialties: selectedOptions }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -136,6 +137,15 @@ const AddTrainer: React.FC = () => {
     });
   };
 
+
+  const specialtyOptions = [
+    { value: "strength", label: "Strength Training" },
+    { value: "cardio", label: "Cardio" },
+    { value: "yoga", label: "Yoga" },
+    { value: "pilates", label: "Pilates" },
+    { value: "crossfit", label: "CrossFit" },
+    { value: "boxing", label: "Boxing" },
+  ];
   const inputStyle = "block w-full pl-10 h-9 border border-gray-300 shadow-sm focus:ring-custom focus:border-custom sm:text-sm rounded-md";
 
   return (
@@ -236,19 +246,26 @@ const AddTrainer: React.FC = () => {
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                 <i className="fas fa-dumbbell"></i>
               </span>
-              <select
-                multiple
+              <Select
+                isMulti
                 name="specialties"
-                required
-                className={`${inputStyle} h-auto`}
-                value={formData.specialties}
-                onChange={handleChange}
-              >
-                <option value="strength">Strength</option>
-                <option value="cardio">Cardio</option>
-                <option value="yoga">Yoga</option>
-                <option value="pilates">Pilates</option>
-              </select>
+                options={specialtyOptions}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                onChange={(selected) => setFormData((prev) => ({
+                  ...prev,
+                  specialties: selected ? selected.map((opt) => opt.value) : [],
+                }))}
+                value={specialtyOptions.filter((opt) => formData.specialties.includes(opt.value))}
+              />
+              <div className="mt-2">
+                {formData.specialties.length > 0 && (
+                  <p className="text-sm text-gray-600">
+                    Selected: {formData.specialties.join(", ")}
+                  </p>
+                )}
+              </div>
+
               {errors.specialties && <p className="text-red-500 text-sm mt-1">{errors.specialties}</p>}
             </div>
           </div>

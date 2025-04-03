@@ -1,3 +1,5 @@
+/* eslint-disable prefer-const */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-useless-catch */
 import axios from "axios";
 import { AddTrainerData } from "../../entities/AddTrainerData";
@@ -152,6 +154,55 @@ export const addTrainer = async (data: AddTrainerData) => {
     throw error;
   }
 };
+
+export const addGym = async (data: FormData) => {
+  try {
+    const response = await apiClient.post("/admin/addGym", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error; 
+  }
+};
+
+
+export const availbleTrainers = async () => {
+  try {
+    const response = await apiClient.get("/admin/available-trainers");
+    console.log( ' response.data' ,response.data );
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching trainers:", error);
+  }
+  
+} 
+
+export const gymsList = async (page:number , limit :number) => {
+  try {
+    const response = await apiClient.get(`/admin/gyms?page=${page}&limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching gyms:", error);
+    throw error;
+  }
+  
+}
+
+export const trainersList = async (page: number, limit: number) => {
+  try {
+    const response = await apiClient.get(`/admin/trainers?page=${page}&limit=${limit}`);
+    return response.data; // Expected: { trainers, stats, page, totalPages }
+  } catch (error) {
+    console.error("Error fetching trainers:", error);
+    throw error;
+  }
+};
+
+
 
 // Trainer
 export const trainerLogin = async (email: string, password: string) => {

@@ -134,7 +134,7 @@ const App: React.FC = () => {
               <Route path="trainers" element={<Trainers />} />
               <Route path="trainers/add" element={<AddTrainer />} />
               <Route path="gyms" element={<Gyms />} />
-              <Route path="gyms/add" element={<AddGymForm />} />
+              <Route path="gym/add" element={<AddGymForm />} />
               <Route path="earnings" element={<div>Earnings Page</div>} />
               <Route path="subscriptions" element={<div>Subscriptions Page</div>} />
               <Route path="ai-training" element={<div>AI Training Page</div>} />

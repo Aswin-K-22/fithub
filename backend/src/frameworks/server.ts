@@ -12,8 +12,10 @@ import { adminLogin } from "../adapters/controllers/admin/adminAuthController";
 import { getTrainer, resendTrainerOtp, trainerLogin ,trainerLogout,verifyTrainerOtp} from "../adapters/controllers/trainer/trainerAuthController";
 import { getAllUsers } from "../adapters/controllers/admin/userManagement";
 import { adminAuthMiddleware } from "../adapters/middleware/adminAuthMiddleware";
-import { addTrainer } from "../adapters/controllers/admin/TrainerManagement";
+import { addTrainer, getAvailableTrainers, getTrainers } from "../adapters/controllers/admin/TrainerManagement";
 import { trainerAuthMiddleware } from "../adapters/middleware/trainerAuthMidd";
+import { addGym, getGyms } from "../adapters/controllers/admin/gymManagement";
+import { upload } from "../adapters/config/multer";
 
 
 const app = express();
@@ -39,6 +41,7 @@ app.use(cors({
 
 app.use(cookieParser())
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 
 // Routes
@@ -56,7 +59,11 @@ app.post("/api/auth/resend-otp", resendOtp);
 
 app.post("/api/auth/admin/login", adminLogin);
 app.get("/api/admin/users", adminAuthMiddleware, getAllUsers);
-app.post('/api/admin/addTrainer' , addTrainer);
+app.post('/api/admin/addTrainer' ,adminAuthMiddleware, addTrainer);
+app.post('/api/admin/addGym' ,upload.array('images'),adminAuthMiddleware , addGym );
+app.get("/api/admin/available-trainers", adminAuthMiddleware, getAvailableTrainers);
+app.get("/api/admin/gyms", adminAuthMiddleware, getGyms);
+app.get("/api/admin/trainers", adminAuthMiddleware, getTrainers);
 
 //Trainer routes
 

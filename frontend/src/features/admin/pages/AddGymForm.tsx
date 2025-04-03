@@ -1,10 +1,11 @@
 import React, { useReducer, useEffect, useState } from "react";
-import { Link, } from "react-router-dom";
+import { Link, useNavigate, } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ToastContainer, toast } from "react-toastify";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { addGym, availbleTrainers } from "../../../lib/api/authApi";
 
 // Zod Schema for Validation
 const gymSchema = z.object({
@@ -118,7 +119,7 @@ const formReducer = (state: FormState, action: FormAction): FormState => {
 };
 
 const AddGymForm: React.FC = () => {
-  //const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [state, dispatch] = useReducer(formReducer, {
     name: "",
@@ -156,17 +157,19 @@ const AddGymForm: React.FC = () => {
 
   useEffect(() => {
     const fetchTrainers = async () => {
-      const dummyTrainers = [
-        { id: "trainer1", name: "John Smith", active: true },
-        { id: "trainer2", name: "Sarah Johnson", active: true },
-        { id: "trainer3", name: "Mike Wilson", active: false },
-      ];
-      setTrainersList(dummyTrainers);
+      try {
+        const {trainers} = await availbleTrainers();
+        console.log('traienrs',trainers);
+        
+        setTrainersList(trainers);
+      } catch (error) {
+        console.error("Error fetching trainers:", error);
+      }
     };
     fetchTrainers();
   }, []);
 
-  // Sync form state with reducer state
+
   useEffect(() => {
     const gymFormDataKeys = Object.keys(gymSchema.shape) as (keyof GymFormData)[];
     gymFormDataKeys.forEach((key) => {
@@ -244,8 +247,9 @@ const AddGymForm: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const newImages = Array.from(files).map((file) => URL.createObjectURL(file));
-      dispatch({ type: "ADD_IMAGE", images: newImages, files: Array.from(files) });
+      const newImages = Array.from(files).map((file) => URL.createObjectURL(file)); // For preview
+      const newFiles = Array.from(files); // Actual File objects
+      dispatch({ type: "ADD_IMAGE", images: newImages, files: newFiles });
       setValue("images", [...state.images, ...newImages]);
       trigger("images");
       toast.success("Images uploaded!");
@@ -277,34 +281,46 @@ const AddGymForm: React.FC = () => {
     toast.success("Trainer removed!");
   };
 
-  const onSubmit = async (data: GymFormData) => {
+// AddGymForm.tsx (onSubmit function)
+const onSubmit = async (data: GymFormData) => {
+    console.log("onSubmit triggered with data:", data);
+  
     if (!isValid) {
+      console.log("Validation errors detected. Submission blocked.");
       toast.error("Please fix all validation errors before submitting.");
       return;
     }
+    console.log("Validation passed. Proceeding with submission...");
+  
     toast.info("Saving gym...");
     const formDataToSend = new FormData();
-    formDataToSend.append("gymData", JSON.stringify(data));
-    state.imageFiles.forEach((file) => formDataToSend.append("images", file));
-    console.log("form data ",formDataToSend);
-    
-    const formData = getValues();
-  console.log("Form Values Updated:", formData);
-    toast.success("Gym saved successfully!");
-
-
-    // try {
-    //   const response = await fetch("/api/gyms", {
-    //     method: "POST",
-    //     body: formDataToSend,
-    //   });
-    //   if (!response.ok) throw new Error("Failed to save gym");
-    //   toast.success("Gym saved successfully!");
-    //   navigate("/admin/gyms");
-    // } catch (error) {
-    //   console.error("Error saving gym:", error);
-    //   toast.error("Error saving gym.");
-    // }
+  
+    const gymData = { ...data, images: undefined }; // Remove images from gymData
+    console.log("Processed gym data before sending:", gymData);
+  
+    formDataToSend.append("gymData", JSON.stringify(gymData));
+  
+    // Append image files under the "images" field name
+    state.imageFiles.forEach((file) => {
+      formDataToSend.append("images", file); // Use "images" consistently
+    });
+  
+    console.log("Form data submitted:", Object.fromEntries(formDataToSend));
+  
+    try {
+      console.log("Before sending, FormData contains:");
+      for (const pair of formDataToSend.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+  
+      const response = await addGym(formDataToSend);
+      console.log("API call response:", response);
+      toast.success("Gym saved successfully!");
+      navigate('/admin/gyms');
+    } catch (error) {
+      console.error("Error saving gym:", error);
+      toast.error("Error saving gym.");
+    }
   };
 
   return (
@@ -384,6 +400,7 @@ const AddGymForm: React.FC = () => {
                           trigger("type");
                         }}
                       >
+                        <option value="">Select a trainer...</option>
                         <option value="Premium">Premium</option>
                         <option value="Basic">Basic</option>
                         <option value="Diamond">Diamond</option>

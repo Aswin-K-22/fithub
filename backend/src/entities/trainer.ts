@@ -5,16 +5,16 @@ export interface Trainer {
   email: string;
   password: string;
   role: string;
-  profilePic?: string; // Matches Prisma schema
-  isVerified?: boolean;
+  profilePic?: string;
+  isVerified: boolean;
   otp?: string | null;
   otpExpires?: Date | null;
   refreshToken?: string | null;
-  personalDetails?: Record<string, any>; // Json type from Prisma
+  personalDetails?: Record<string, any>;
   certifications?: {
     name: string;
     issuer: string;
-    dateEarned: Date; // Prisma returns Date for DateTime
+    dateEarned: Date;
     certificateId: string;
   }[];
   bio?: string | null;
@@ -23,21 +23,21 @@ export interface Trainer {
   clients?: {
     userId: string;
     membershipId?: string | null;
-    startDate: Date; // Prisma returns Date
+    startDate: Date;
     active: boolean;
   }[];
   paymentDetails?: {
     method?: string | null;
-    rate?: number | null;
+    rate?: number | null | undefined;
     currency?: string | null;
     paymentHistory?: {
       paymentId: string;
-      amount: number;
-      date: Date; // Prisma returns Date
+      amount: number | undefined;
+      date: Date;
       periodStart?: Date | null;
       periodEnd?: Date | null;
       clientCount?: number | null;
-      hoursWorked?: number | null;
+      hoursWorked?: number | null | undefined;
     }[];
   } | null;
   availability?: {
@@ -46,8 +46,50 @@ export interface Trainer {
     endTime: string;
   }[];
   gyms?: string[];
-  createdAt?: Date; // Prisma returns Date
-  updatedAt?: Date; // Prisma returns Date
+  createdAt: Date;
+  updatedAt: Date;
+  phone?: string;
+  bookings?: {
+    id: string;
+    userId: string;
+    gymId: string;
+    trainerId?: string | null;
+    slot: {
+      date: Date;
+      startTime: string;
+      endTime: string;
+      duration: number;
+    };
+    status: string;
+    qrCode: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+  payments?: {
+    id: string;
+    type: string;
+    userId?: string | null;
+    trainerId?: string | null;
+    membershipId?: string | null;
+    bookingId?: string | null;
+    amount: number;
+    currency: string;
+    paymentGateway?: string | null;
+    paymentId?: string | null;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+  ratings?: { // Replace rating?: number
+    average?: number;
+    count?: number;
+    reviews: {
+      userId: string;
+      rating: number;
+      comment?: string | null;
+      date: Date;
+    }[];
+  };
 }
 
 export interface AddTrainerData {
@@ -57,7 +99,5 @@ export interface AddTrainerData {
   specialties: string[];
   experienceLevel: string;
   bio: string;
-  phone: string;
+  phone?: string;
 }
-
-export default Trainer;

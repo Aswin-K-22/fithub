@@ -126,6 +126,30 @@ export const refreshToken = async () => {
   }
 };
 
+export const fetchGyms = async (
+  page: number,
+  limit: number,
+  filters: { search?: string; location?: string; gymType?: string; rating?: string }
+) => {
+  try {
+    const response = await apiClient.get("/user/gyms", {
+      params: {
+        page,
+        limit,
+        search: filters.search,
+        location: filters.location,
+        gymType: filters.gymType,
+        rating: filters.rating,
+      },
+    });
+    return response.data; // Expected: { success: true, gyms: [...], page, totalPages, totalGyms }
+  } catch (error) {
+    console.error("Error fetching gyms:", error);
+    throw error; // Let the caller (GymSearchPage) handle the error
+  }
+};
+
+
 // Admin
 export const adminLogin = async (email: string, password: string) => {
   try {

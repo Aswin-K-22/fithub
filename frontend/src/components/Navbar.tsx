@@ -62,17 +62,19 @@ const Navbar: React.FC = () => {
                 Services
               </a>
               <a
-                href="#"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Find Gym
-              </a>
-              <a
-                href="#"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Gym Membership
-              </a>
+  href="#"
+  onClick={() => navigate("/gyms")}
+  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+>
+  Find Gym
+</a>
+<a
+  href="#"
+  onClick={() => navigate("/membership")}
+  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+>
+  Gym Membership
+</a>
               <a
                 href="#"
                 className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
@@ -88,7 +90,7 @@ const Navbar: React.FC = () => {
             </div>
           </div>
           <div className="hidden sm:flex sm:items-center sm:space-x-4">
-            {isAuthenticated ? (
+            {(isAuthenticated && user?.role === 'user' )? (
               <div className="flex items-center space-x-6">
                 <button type="button" className="relative text-gray-600 hover:text-gray-900">
                   <i className="fas fa-bell text-xl"></i>

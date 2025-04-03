@@ -46,3 +46,18 @@ export type Gym = Prisma.GymGetPayload<{
     bookings: true; // Only bookings as a relation
   };
 }>;
+
+
+
+export interface GymForUsers {
+  id: string;
+  name: string;
+  address?: {
+    city?: string | null;
+  } | null;
+  type?: string | null;
+  image?: string; // First image URL
+  ratings?: {
+    average?: number | null;
+  } | null;
+}

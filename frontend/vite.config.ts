@@ -25,5 +25,12 @@ export default ({ mode }: { mode: string }) => {
         },
       },
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          additionalData: `@import "tailwindcss/base"; @import "tailwindcss/components"; @import "tailwindcss/utilities";`,
+        },
+      },
+    },
   });
 };

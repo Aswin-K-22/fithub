@@ -16,6 +16,7 @@ import { addTrainer, getAvailableTrainers, getTrainers } from "../adapters/contr
 import { trainerAuthMiddleware } from "../adapters/middleware/trainerAuthMidd";
 import { addGym, getGyms } from "../adapters/controllers/admin/gymManagement";
 import { upload } from "../adapters/config/multer";
+import { getGymsForUsers } from "../adapters/controllers/user/GymManagement";
 
 
 const app = express();
@@ -45,7 +46,8 @@ app.use("/uploads", express.static("uploads"));
 
 
 // Routes
-
+//User
+app.get("/api/user/gyms", getGymsForUsers);
 
 // Routes (without authentication)
 app.post("/api/auth/signup", signup);

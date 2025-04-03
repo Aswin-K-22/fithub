@@ -152,8 +152,7 @@ export class MongoTrainerRepository implements TrainerRepository {
   }
 
   async countSuspended(): Promise<number> {
-    // Assuming suspended trainers have a specific condition (e.g., no gyms assigned or a flag)
-    // Customize based on your logic; here, we'll assume suspended if not verified and no gyms
+
     return this.prisma.trainer.count({
       where: { isVerified: false, gyms: { isEmpty: true } },
     });

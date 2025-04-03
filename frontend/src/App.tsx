@@ -23,6 +23,8 @@ import AddTrainer from "./features/admin/pages/AddTrainer";
 import UserProfile from "./features/user/pages/UserProfile";
 import AddGymForm from "./features/admin/pages/AddGymForm";
 import 'react-toastify/dist/ReactToastify.css';
+import GymSearchPage from "./features/user/pages/GymSearchPage";
+import MembershipPage from "./features/user/pages/MembershipPage";
 
 const ProtectedRoute: React.FC<{ element: JSX.Element; allowedRoles: string[] }> = ({ element, allowedRoles }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -59,7 +61,9 @@ const App: React.FC = () => {
         location.pathname.includes("login") ||
         location.pathname === "/verify-otp" ||
         location.pathname.includes("google/callback") ||
-        location.pathname === "/" 
+        location.pathname === "/" ||
+        location.pathname === "/gyms"  ||
+        location.pathname === "/membership"
       ) {
         console.log("Skipping session check - on auth page or landing page");
         return;
@@ -121,6 +125,8 @@ const App: React.FC = () => {
         <ErrorBoundary>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/gyms" element={<GymSearchPage />} />
+            <Route path="/membership" element={<MembershipPage />} />
             <Route path="/profile" element={<ProtectedRoute element={<UserProfile />} allowedRoles={["user"]} />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />

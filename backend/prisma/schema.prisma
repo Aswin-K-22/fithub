@@ -10,26 +10,26 @@ datasource db {
 // User Model
 // User Model (Updated)
 model User {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  email         String         @unique
-  password      String
-  role          String
-  name          String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  otp           String?
-  otpExpires    DateTime?
-  isVerified    Boolean        @default(false)
-  refreshToken  String?
-  membershipId  String?        @db.ObjectId // Current active membership
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  email          String          @unique
+  password       String
+  role           String
+  name           String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  otp            String?
+  otpExpires     DateTime?
+  isVerified     Boolean         @default(false)
+  refreshToken   String?
+  membershipId   String?         @db.ObjectId // Current active membership
   fitnessProfile FitnessProfile?
-  workoutPlanId String?        @db.ObjectId
-  progress      Progress[]
-  weeklySummary WeeklySummary[]
-  profilePic    String?
-  memberships   Membership[]   @relation 
-  Bookings      Booking[]      @relation 
-  payments      Payment[]      @relation
+  workoutPlanId  String?         @db.ObjectId
+  progress       Progress[]
+  weeklySummary  WeeklySummary[]
+  profilePic     String?
+  memberships    Membership[]    @relation
+  Bookings       Booking[]       @relation
+  payments       Payment[]       @relation
 }
 
 type FitnessProfile {
@@ -43,7 +43,7 @@ type FitnessProfile {
 
 type Progress {
   workoutDate         DateTime
-  planId              String    @db.ObjectId
+  planId              String              @db.ObjectId
   exercisesCompleted  ExerciseCompleted[]
   totalDuration       Float?
   totalCaloriesBurned Float?
@@ -62,39 +62,39 @@ type ExerciseCompleted {
 }
 
 type WeeklySummary {
-  weekStart          DateTime
-  weekEnd            DateTime
+  weekStart           DateTime
+  weekEnd             DateTime
   totalCaloriesBurned Float?
   weeklyDifficulty    String?
 }
 
 // Trainer Model (Updated)
 model Trainer {
-  id             String          @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
-  email          String          @unique
-  password       String
-  role           String
-  profilePic     String?
-  isVerified     Boolean         @default(false)
-  otp            String?
-  otpExpires     DateTime?
-  refreshToken   String?
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  email           String          @unique
+  password        String
+  role            String
+  profilePic      String?
+  isVerified      Boolean         @default(false)
+  otp             String?
+  otpExpires      DateTime?
+  refreshToken    String?
   personalDetails Json?
   certifications  Certification[]
-  bio            String?
-  specialties    String[]
+  bio             String?
+  specialties     String[]
   experienceLevel String?
-  clients        Client[]
-  paymentDetails PaymentDetails?
-  availability   Availability[]
-  gyms           String[]        @db.ObjectId
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  bookings       Booking[]       @relation
-  payments       Payment[]       @relation
-  phone String?
-  ratings        Ratings?
+  clients         Client[]
+  paymentDetails  PaymentDetails?
+  availability    Availability[]
+  gyms            String[]        @db.ObjectId
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  bookings        Booking[]       @relation
+  payments        Payment[]       @relation
+  phone           String?
+  ratings         Ratings?
 }
 
 type Certification {
@@ -105,27 +105,27 @@ type Certification {
 }
 
 type Client {
-  userId       String  @db.ObjectId
-  membershipId String? @db.ObjectId
+  userId       String   @db.ObjectId
+  membershipId String?  @db.ObjectId
   startDate    DateTime
   active       Boolean
 }
 
 type PaymentDetails {
-  method        String?
-  rate          Float?
-  currency      String?
+  method         String?
+  rate           Float?
+  currency       String?
   paymentHistory PaymentHistory[]
 }
 
 type PaymentHistory {
-  paymentId    String  @db.ObjectId
-  amount       Float
-  date         DateTime
-  periodStart  DateTime?
-  periodEnd    DateTime?
-  clientCount  Int?
-  hoursWorked  Float?
+  paymentId   String    @db.ObjectId
+  amount      Float
+  date        DateTime
+  periodStart DateTime?
+  periodEnd   DateTime?
+  clientCount Int?
+  hoursWorked Float?
 }
 
 type Availability {
@@ -136,41 +136,41 @@ type Availability {
 
 // WorkoutPlan Model
 model WorkoutPlan {
-  id                  String         @id @default(auto()) @map("_id") @db.ObjectId
-  title               String
-  createdBy           String?        @db.ObjectId
-  assignedTo          String         @db.ObjectId
-  goal                String
-  level               String
-  duration            Int
-  startDate           DateTime
-  endDate             DateTime
-  dailyWorkouts       DailyWorkout[]
-  status              String
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  createdBy     String?        @db.ObjectId
+  assignedTo    String         @db.ObjectId
+  goal          String
+  level         String
+  duration      Int
+  startDate     DateTime
+  endDate       DateTime
+  dailyWorkouts DailyWorkout[]
+  status        String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 type DailyWorkout {
-  day                  Int
-  exercises            Exercise[]
-  totalDuration        Float?
+  day                    Int
+  exercises              Exercise[]
+  totalDuration          Float?
   totalEstimatedCalories Float?
 }
 
 type Exercise {
-  id                  String  @db.ObjectId
-  name                String
-  sets                Int?
-  reps                Int?
-  weight              Float?
-  duration            Float?
-  estimatedCalories   Float?
+  id                String @db.ObjectId
+  name              String
+  sets              Int?
+  reps              Int?
+  weight            Float?
+  duration          Float?
+  estimatedCalories Float?
 }
 
 model Gym {
-  id                      String          @id @default(auto()) @map("_id") @db.ObjectId
-  name                    String          @unique
+  id                      String        @id @default(auto()) @map("_id") @db.ObjectId
+  name                    String        @unique
   type                    String
   description             String?
   address                 GymAddress?
@@ -178,26 +178,25 @@ model Gym {
   equipment               Equipment[]
   schedule                GymSchedule[]
   trainers                GymTrainer[]
-  suggestedPlan           String?         @db.ObjectId
+  suggestedPlan           String?       @db.ObjectId
   facilities              Facilities?
   maxCapacity             Int
   membershipCompatibility String[]
   images                  GymImage[]
   ratings                 Ratings?
-  createdAt               DateTime        @default(now())
-  updatedAt               DateTime        @updatedAt
-  bookings                Booking[]       @relation
-  
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  bookings                Booking[]     @relation
 }
 
 type GymAddress {
-  street      String?
-  city        String?
-  state       String?
-  country     String?
-  postalCode  String?
-  lat         Float?
-  lng         Float?
+  street     String?
+  city       String?
+  state      String?
+  country    String?
+  postalCode String?
+  lat        Float?
+  lng        Float?
 }
 
 type Contact {
@@ -235,6 +234,7 @@ type Facilities {
   hasWifi        Boolean?
   hasShowers     Boolean?
 }
+
 type GymImage {
   url         String
   description String?
@@ -242,13 +242,13 @@ type GymImage {
 }
 
 type Ratings {
-  average  Float?  @default(0.0)
-  count    Int?    @default(0)
-  reviews  Review[]
+  average Float?   @default(0.0)
+  count   Int?     @default(0)
+  reviews Review[]
 }
 
 type Review {
-  userId  String  @db.ObjectId
+  userId  String   @db.ObjectId
   rating  Int
   comment String?
   date    DateTime @default(now())
@@ -256,73 +256,80 @@ type Review {
 
 // Membership Model (Updated)
 model Membership {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String    @db.ObjectId
-  plan         MembershipPlan
-  status       String
-  startDate    DateTime
-  endDate      DateTime
-  features     String[]
-  price        Float?
-  currency     String?
-  paymentStatus String?
-  paymentDate  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String    @db.ObjectId
+  planId        String    @db.ObjectId
+  status        String // e.g., "Active", "Expired", "Pending"
+  startDate     DateTime
+  endDate       DateTime
+  paymentId     String?   @db.ObjectId // Unique for one-to-one relation
+  price         Float? // Price paid
+  currency      String?   @default("USD")
+  paymentStatus String? // e.g., "Paid", "Pending"
+  paymentDate   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  user         User?     @relation(fields: [userId], references: [id])
-  payments     Payment[] @relation
+  user     User           @relation(fields: [userId], references: [id])
+  plan     MembershipPlan @relation(fields: [planId], references: [id])
+  payments Payment[]
 }
 
-
-enum MembershipPlan {
-  Basic
-  Premium
-  Diamond
+model MembershipPlan {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String // e.g., "Basic", "Premium", "Diamond"
+  description String? // e.g., "Access to basic gyms"
+  price       Float // e.g., 49
+  duration    Int // Duration in months (1, 3, 6, 12)
+  features    String[] // e.g., ["Basic equipment", "24/7 access"]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberships Membership[] // Opposite relation to Membership
 }
 
 //----Booking
 
 model Booking {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String    @db.ObjectId
-  gymId      String    @db.ObjectId
-  trainerId  String?   @db.ObjectId
-  slot       Slot
-  status     String    // "pending", "confirmed", "cancelled", "completed"
-  qrCode     String    // Unique QR code or pass identifier
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  user       User?     @relation(fields: [userId], references: [id])
-  gym        Gym?      @relation(fields: [gymId], references: [id])
-  trainer    Trainer?  @relation(fields: [trainerId], references: [id])
-  payment    Payment?  @relation(name: "BookingPayment")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  gymId     String   @db.ObjectId
+  trainerId String?  @db.ObjectId
+  slot      Slot
+  status    String // "pending", "confirmed", "cancelled", "completed"
+  qrCode    String // Unique QR code or pass identifier
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id])
+  gym       Gym?     @relation(fields: [gymId], references: [id])
+  trainer   Trainer? @relation(fields: [trainerId], references: [id])
+  payment   Payment? @relation(name: "BookingPayment")
 }
 
 type Slot {
   date      DateTime // e.g., "2025-04-01"
-  startTime String   // e.g., "10:00"
-  endTime   String   // e.g., "11:00"
-  duration  Int      // 60 (minutes)
+  startTime String // e.g., "10:00"
+  endTime   String // e.g., "11:00"
+  duration  Int // 60 (minutes)
 }
 
 model Payment {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   type           String
-  userId         String?   @db.ObjectId
-  trainerId      String?   @db.ObjectId
-  membershipId   String?   @db.ObjectId
-  bookingId      String?   @db.ObjectId @unique
+  userId         String?  @db.ObjectId
+  trainerId      String?  @db.ObjectId
+  membershipId   String?  @db.ObjectId // Unique for one-to-one relation
+  bookingId      String?  @unique @db.ObjectId
   amount         Float
   currency       String
   paymentGateway String?
   paymentId      String?
   status         String
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user          User?      @relation(fields: [userId], references: [id])
-  trainer       Trainer?   @relation(fields: [trainerId], references: [id])
-  membership    Membership? @relation(fields: [membershipId], references: [id])
-  booking       Booking?   @relation(name: "BookingPayment", fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction) // Explicit name
+  user       User?       @relation(fields: [userId], references: [id])
+  trainer    Trainer?    @relation(fields: [trainerId], references: [id])
+  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  booking    Booking?    @relation(name: "BookingPayment", fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
+

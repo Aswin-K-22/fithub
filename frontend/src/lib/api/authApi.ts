@@ -161,11 +161,14 @@ export const adminLogin = async (email: string, password: string) => {
   }
 };
 
-export const getUsers = async () => {
+export const getUsers = async (page: number = 1, limit: number = 3) => {
   try {
-    const response = await apiClient.get("/admin/users");
-    return response.data; // Expected: array of users
+    const response = await apiClient.get("/admin/users", {
+      params: { page, limit },
+    });
+    return response.data;
   } catch (error) {
+    console.error("Error fetching users:", error);
     throw error;
   }
 };
@@ -226,6 +229,15 @@ export const trainersList = async (page: number, limit: number) => {
   }
 };
 
+export const toggleUserVerification = async (id: string) => {
+  try {
+    const response = await apiClient.put(`/admin/users/${id}/toggle-verification`);
+    return response.data; 
+  } catch (error) {
+    console.error("Error toggling user verification:", error);
+    throw error;
+  }
+};
 
 
 // Trainer

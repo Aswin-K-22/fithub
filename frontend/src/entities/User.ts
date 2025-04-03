@@ -1,19 +1,16 @@
-// # Core business models
-
-
-
+// frontend/src/entities/User.ts
 export interface User {
-    name: string;
-    email: string;
-    membership?: string;
-    status?: string;
-    lastLogin?: string;
-    avatar?: string;
-  }
-  
+  id: string; // Add this if missing
+  name: string;
+  email: string;
+  membership?: string;
+  status?: string;
+  lastLogin?: string;
+  profilePic?: string;
+  isVerified?: boolean; // Add this if missing
+}
 
-
- export interface UserProfileData {
+export interface UserProfileData {
   id: string;
   email: string;
   name: string;
@@ -53,4 +50,5 @@ export interface User {
   profilePic?: string;
   workoutPlanId?: string;
 }
-  export default User;
+
+export default User;

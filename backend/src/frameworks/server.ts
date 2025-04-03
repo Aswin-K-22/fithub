@@ -10,7 +10,7 @@ import cookieParser from 'cookie-parser'
 import { authMiddleware } from "../adapters/middleware/authMiddleware";
 import { adminLogin } from "../adapters/controllers/admin/adminAuthController";
 import { getTrainer, resendTrainerOtp, trainerLogin ,trainerLogout,verifyTrainerOtp} from "../adapters/controllers/trainer/trainerAuthController";
-import { getAllUsers } from "../adapters/controllers/admin/userManagement";
+import { getAllUsers, toggleUserVerification } from "../adapters/controllers/admin/userManagement";
 import { adminAuthMiddleware } from "../adapters/middleware/adminAuthMiddleware";
 import { addTrainer, getAvailableTrainers, getTrainers } from "../adapters/controllers/admin/TrainerManagement";
 import { trainerAuthMiddleware } from "../adapters/middleware/trainerAuthMidd";
@@ -66,6 +66,7 @@ app.post('/api/admin/addGym' ,upload.array('images'),adminAuthMiddleware , addGy
 app.get("/api/admin/available-trainers", adminAuthMiddleware, getAvailableTrainers);
 app.get("/api/admin/gyms", adminAuthMiddleware, getGyms);
 app.get("/api/admin/trainers", adminAuthMiddleware, getTrainers);
+app.put("/api/admin/users/:id/toggle-verification", adminAuthMiddleware, toggleUserVerification);
 
 //Trainer routes
 

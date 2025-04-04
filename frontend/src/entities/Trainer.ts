@@ -32,6 +32,9 @@ export interface Trainer {
       active: boolean;
     }[];
     paymentDetails?: {
+      ifscCode?: string  ;
+      bankAccount?: string ;
+      upiId?: string ;
       method?: string;
       rate?: number;
       currency?: string;

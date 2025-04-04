@@ -282,7 +282,7 @@ export const toggleUserVerification = async (id: string) => {
   }
 };
 
-
+///////////////////////////////////////////////////////////////////////////////////
 // Trainer
 export const trainerLogin = async (email: string, password: string) => {
   try {
@@ -326,7 +326,38 @@ export const trainerLogout = async (email: string) => {
 
 
 export const getTrainerProfile = async (): Promise<{ trainer: TrainerProfileData }> => {
-  const response = await apiClient.get("/auth/user-trainer");
-  return response.data; 
+  try {
+    const response = await apiClient.get("/trainer/profile");
+    return response.data;
+  } catch (error) {
+    console.error("Get trainer profile error:", error);
+    throw error;
+  }
 };
+
+export const updateTrainerProfile = async (data: {
+  name?: string;
+  bio?: string;
+  specialties?: string[];
+  profilePic?: File;
+  upiId?: string;
+  bankAccount?: string;
+  ifscCode?: string;
+}) => {
+  const formData = new FormData();
+  if (data.name) formData.append("name", data.name);
+  if (data.bio) formData.append("bio", data.bio);
+  if (data.specialties) formData.append("specialties", JSON.stringify(data.specialties));
+  if (data.profilePic) formData.append("profilePic", data.profilePic);
+  if (data.upiId) formData.append("upiId", data.upiId);
+  if (data.bankAccount) formData.append("bankAccount", data.bankAccount);
+  if (data.ifscCode) formData.append("ifscCode", data.ifscCode);
+
+  const response = await apiClient.put("/trainer/profile", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+
 export default apiClient;

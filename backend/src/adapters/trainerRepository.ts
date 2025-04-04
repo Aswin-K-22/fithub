@@ -16,6 +16,7 @@ export interface TrainerRepository {
   count(): Promise<number>;
   countByStatus(isVerified: boolean): Promise<number>;
   countSuspended(): Promise<number>;
+  updateProfile(email: string, data: Partial<Trainer>): Promise<Trainer>;
 }
 
 export class MongoTrainerRepository implements TrainerRepository {
@@ -156,5 +157,27 @@ export class MongoTrainerRepository implements TrainerRepository {
     return this.prisma.trainer.count({
       where: { isVerified: false, gyms: { isEmpty: true } },
     });
+  }
+
+
+  async updateProfile(email: string, data: Partial<Trainer>): Promise<Trainer> {
+    const updatedTrainer = await this.prisma.trainer.update({
+      where: { email },
+      data: {
+        name: data.name,
+        profilePic: data.profilePic,
+        bio: data.bio,
+        specialties: data.specialties,
+        paymentDetails: data.paymentDetails
+          ? {
+              upiId: data.paymentDetails.upiId,
+              bankAccount: data.paymentDetails.bankAccount,
+              ifscCode: data.paymentDetails.ifscCode,
+            }
+          : undefined,
+        updatedAt: new Date(),
+      },
+    });
+    return updatedTrainer as Trainer;
   }
 }

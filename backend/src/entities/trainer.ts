@@ -27,17 +27,20 @@ export interface Trainer {
     active: boolean;
   }[];
   paymentDetails?: {
-    method?: string | null;
-    rate?: number | null | undefined;
-    currency?: string | null;
+    ifscCode?: string | null; 
+    bankAccount?: string | null;
+    upiId?: string | null;
+    method?: string | null; 
+    rate?: number | null; 
+    currency?: string | null; 
     paymentHistory?: {
       paymentId: string;
-      amount: number | undefined;
+      amount: number; 
       date: Date;
       periodStart?: Date | null;
       periodEnd?: Date | null;
       clientCount?: number | null;
-      hoursWorked?: number | null | undefined;
+      hoursWorked?: number | null; 
     }[];
   } | null;
   availability?: {
@@ -80,7 +83,7 @@ export interface Trainer {
     createdAt: Date;
     updatedAt: Date;
   }[];
-  ratings?: { // Replace rating?: number
+  ratings?: {
     average?: number;
     count?: number;
     reviews: {

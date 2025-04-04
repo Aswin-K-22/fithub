@@ -112,15 +112,18 @@ type Client {
 }
 
 type PaymentDetails {
-  method         String?
-  rate           Float?
-  currency       String?
-  paymentHistory PaymentHistory[]
+  method         String?         // e.g., "hourly", "monthly_fixed" (admin-controlled)
+  rate           Float?          // Admin-controlled rate
+  currency       String?         // e.g., "USD", "INR" (admin-controlled)
+  paymentHistory PaymentHistory[] // Existing payment history
+  upiId          String?         // Trainer-provided UPI ID
+  bankAccount    String?         // Trainer-provided bank account number
+  ifscCode       String?         // Trainer-provided IFSC code
 }
 
 type PaymentHistory {
   paymentId   String    @db.ObjectId
-  amount      Float
+  amount      Float     // Non-nullable, matches schema
   date        DateTime
   periodStart DateTime?
   periodEnd   DateTime?
@@ -133,7 +136,6 @@ type Availability {
   startTime String
   endTime   String
 }
-
 // WorkoutPlan Model
 model WorkoutPlan {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId

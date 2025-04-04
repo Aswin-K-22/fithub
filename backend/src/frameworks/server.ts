@@ -18,6 +18,7 @@ import { addGym, getGyms } from "../adapters/controllers/admin/gymManagement";
 import { upload } from "../adapters/config/multer";
 import { getGymsForUsers } from "../adapters/controllers/user/GymManagement";
 import { getUserProfile, updateUserProfile } from "../adapters/controllers/user/profileController";
+import { getTrainerProfile, updateTrainerProfile } from "../adapters/controllers/trainer/trainerProfileController";
 
 const app = express();
 const httpServer = createServer(app);
@@ -72,6 +73,8 @@ app.post("/api/auth/trainer/login", trainerLogin);
 app.post("/api/auth/trainer/verify-otp", verifyTrainerOtp);
 app.post("/api/auth/trainer/logout", trainerLogout);
 app.post("/api/auth/trainer/resend-otp", resendTrainerOtp);
+app.get("/api/trainer/profile", trainerAuthMiddleware, getTrainerProfile);
+app.put("/api/trainer/profile", trainerAuthMiddleware, upload.single("profilePic"), updateTrainerProfile);
 
 // Protected Routes (require auth)
 app.post("/api/auth/logout", authMiddleware, logout);

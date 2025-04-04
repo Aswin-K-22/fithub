@@ -19,6 +19,7 @@ import { upload } from "../adapters/config/multer";
 import { getGymsForUsers } from "../adapters/controllers/user/GymManagement";
 import { getUserProfile, updateUserProfile } from "../adapters/controllers/user/profileController";
 import { getTrainerProfile, updateTrainerProfile } from "../adapters/controllers/trainer/trainerProfileController";
+import { addMembershipPlan, getMembershipPlans } from "../adapters/controllers/admin/membershipController";
 
 const app = express();
 const httpServer = createServer(app);
@@ -48,6 +49,8 @@ app.get("/api/user/gyms", getGymsForUsers);
 app.put("/api/auth/user/profile", authMiddleware, upload.single("profilePic"), updateUserProfile);
 app.get("/api/auth/user/profile", authMiddleware, getUserProfile);
 
+app.get("/api/membership-plans", getMembershipPlans);
+
 // Routes (without authentication)
 app.post("/api/auth/signup", signup);
 app.post("/api/auth/login", login);
@@ -67,6 +70,10 @@ app.get("/api/admin/available-trainers", adminAuthMiddleware, getAvailableTraine
 app.get("/api/admin/gyms", adminAuthMiddleware, getGyms);
 app.get("/api/admin/trainers", adminAuthMiddleware, getTrainers);
 app.put("/api/admin/users/:id/toggle-verification", adminAuthMiddleware, toggleUserVerification);
+
+app.post("/api/admin/membership-plans", adminAuthMiddleware, addMembershipPlan);
+app.get("/api/admin/membership-plans", adminAuthMiddleware, getMembershipPlans);
+
 
 // Trainer Routes
 app.post("/api/auth/trainer/login", trainerLogin);

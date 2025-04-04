@@ -282,6 +282,50 @@ export const toggleUserVerification = async (id: string) => {
   }
 };
 
+
+export const fetchMembershipPlans = async (page: number = 1, limit: number = 10) => {
+  try {
+    const response = await apiClient.get("/membership-plans", {
+      params: { page, limit },
+    });
+    return response.data; // Expected: { plans: [...], total, page, pages }
+  } catch (error) {
+    console.error("Error fetching membership plans:", error);
+    throw error;
+  }
+};
+
+export const subscribeToPlan = async (planId: string) => {
+  try {
+    const response = await apiClient.post("/membership/subscribe", { planId });
+    return response.data; // Expected: { membership: {...}, paymentDetails: {...} }
+  } catch (error) {
+    console.error("Error subscribing to plan:", error);
+    throw error;
+  }
+};
+
+export const addMembershipPlan = async (
+  name: "Premium" | "Basic" | "Diamond",
+  description: string,
+  price: string,
+  duration: string,
+  features: string[]
+) => {
+  try {
+    const response = await apiClient.post("/admin/membership-plans", {
+      name,
+      description,
+      price,
+      duration,
+      features,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating membership plan:", error);
+    throw error;
+  }
+};
 ///////////////////////////////////////////////////////////////////////////////////
 // Trainer
 export const trainerLogin = async (email: string, password: string) => {
@@ -358,6 +402,8 @@ export const updateTrainerProfile = async (data: {
   });
   return response.data;
 };
+
+
 
 
 export default apiClient;

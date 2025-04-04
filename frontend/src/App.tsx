@@ -28,6 +28,8 @@ import AddGymForm from "./features/admin/pages/AddGymForm";
 import 'react-toastify/dist/ReactToastify.css';
 import GymSearchPage from "./features/user/pages/GymSearchPage";
 import MembershipPage from "./features/user/pages/MembershipPage";
+import MembershipPlans from "./features/admin/pages/MembershipPage";
+import AddMembershipPlan from "./features/admin/pages/AddMembershipPlan";
 
 const ProtectedRoute: React.FC<{ element: JSX.Element; allowedRoles: string[] }> = ({ element, allowedRoles }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -148,6 +150,8 @@ const App: React.FC = () => {
               <Route path="trainers/add" element={<AddTrainer />} />
               <Route path="gyms" element={<Gyms />} />
               <Route path="gym/add" element={<AddGymForm />} />
+              <Route path="subscriptions" element={<MembershipPlans />} />
+              <Route path="subscriptions/add" element={<AddMembershipPlan />} />
               <Route path="earnings" element={<div>Earnings Page</div>} />
               <Route path="subscriptions" element={<div>Subscriptions Page</div>} />
               <Route path="ai-training" element={<div>AI Training Page</div>} />

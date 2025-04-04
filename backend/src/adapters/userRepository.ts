@@ -15,6 +15,7 @@ export interface UserRepository {
   toggleUserVerification(id: string): Promise<UserWithoutSensitiveData>;
   updatePassword(email: string, password: string): Promise<void>;
   updateOtpForgotPassword(email: string, password: string): Promise<void>;
+  updateProfile(email: string, data: { name?: string; profilePic?: string }): Promise<User>;
 }
 
 export class MongoUserRepository implements UserRepository {
@@ -186,6 +187,13 @@ export class MongoUserRepository implements UserRepository {
     await this.prisma.user.update({
       where: { email },
       data: { password: hashedPassword, otp: null, otpExpires: null },
+    });
+  }
+
+  async updateProfile(email: string, data: { name?: string; profilePic?: string }): Promise<User> {
+    return this.prisma.user.update({
+      where: { email },
+      data,
     });
   }
 }

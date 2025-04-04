@@ -1,51 +1,70 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { RootState } from "../../../lib/redux/store";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// frontend/src/features/user/pages/UserProfile.tsx
+import React, { useEffect, useState, ChangeEvent } from "react";
+import {  useDispatch } from "react-redux";
+// import { useNavigate } from "react-router-dom";
+// import { RootState } from "../../../lib/redux/store";
+import { login } from "../../../lib/redux/slices/authSlice";
 import * as echarts from "echarts";
 import Navbar from "../../../components/Navbar";
-import { getUserProfile } from "../../../lib/api/authApi";
-import { UserProfileData } from "../../../entities/User";
+import { getUserProfile, updateUserProfile } from "../../../lib/api/authApi";
+import { toast } from "react-toastify";
 
+interface UserProfileData {
+  workoutPlanId: any;
+  id: string;
+  email: string;
+  name?: string;
+  role: string;
+  createdAt: string;
+  fitnessProfile: {
+    goals?: string[];
+    weight?: number;
+    height?: number;
+    level?: string;
+    calorieGoal?: number;
+    updatedAt?: string;
+  };
+  progress: any[];
+  weeklySummary: any[];
+  profilePic?: string;
+}
+
+const backendUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const UserProfile: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
-  const navigate = useNavigate();
+  // const { user } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch();
+  // const navigate = useNavigate();
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await getUserProfile(); 
-        setProfileData(response.user); 
+        const response = await getUserProfile();
+        setProfileData(response.user);
+        setEditedName(response.user.name || "");
       } catch (error) {
         console.error("Failed to fetch user profile:", error);
-        setProfileData({
-          id: user?.id || "default-id",
-          email: user?.email || "user@example.com",
-          name: user?.name || "Sarah Johnson",
-          role: user?.role || "user",
-          createdAt: new Date().toISOString(),
-          fitnessProfile: {},
-          progress: [],
-          weeklySummary: [],
-          profilePic: undefined, 
-          workoutPlanId: undefined, 
-        });
+        toast.error("Failed to load profile data");
       } finally {
         setLoading(false);
       }
     };
     fetchProfile();
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     if (!profileData) return;
     const chart = echarts.init(document.getElementById("weeklyChart") as HTMLDivElement);
     const weeklyCalories = profileData.weeklySummary.length
       ? profileData.weeklySummary.map((summary) => summary.totalCaloriesBurned || 0).slice(-7)
-      : [320, 450, 380, 420, 350, 300, 230];
+      : Array(7).fill(0);
     const option = {
       animation: false,
       tooltip: { trigger: "axis" },
@@ -74,11 +93,43 @@ const UserProfile: React.FC = () => {
     };
   }, [profileData]);
 
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePicFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const updateData: { name?: string; profilePic?: File } = {};
+      if (editedName !== profileData?.name) updateData.name = editedName;
+      if (profilePicFile) updateData.profilePic = profilePicFile;
+
+      if (Object.keys(updateData).length > 0) {
+        const response = await updateUserProfile(updateData);
+        setProfileData(response.user);
+        dispatch(login(response.user));
+        toast.success("Profile updated successfully");
+      }
+      setIsEditing(false);
+      setProfilePicFile(null);
+      setPreviewUrl(null);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      toast.error("Failed to update profile");
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-10">Loading...</div>;
   }
 
-  const defaultProfilePic = "/images/user.jpg";
+  if (!profileData) {
+    return <div className="text-center py-10">Profile not found</div>;
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -90,35 +141,53 @@ const UserProfile: React.FC = () => {
             <div className="p-6 relative">
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-100">
-                    <img
-                      src={profileData?.profilePic || defaultProfilePic}
-                      alt="Profile picture"
-                      className="h-full w-full object-cover"
-                      onError={(e) => (e.currentTarget.src = defaultProfilePic)}
-                    />
+                  <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {previewUrl || profileData.profilePic ? (
+                      <img
+                        src={previewUrl || `${backendUrl}${profileData.profilePic}`}
+                        alt="Profile picture"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <i className="fas fa-user text-gray-400 text-3xl"></i>
+                    )}
                   </div>
-                  <button className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full shadow-lg">
-                    <i className="fas fa-camera text-sm"></i>
-                  </button>
+                  {isEditing && (
+                    <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full shadow-lg cursor-pointer">
+                      <i className="fas fa-camera text-sm"></i>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                    </label>
+                  )}
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center mb-2">
-                    <h1 className="text-2xl font-bold text-gray-900 mr-3">{profileData?.name || "Unknown User"}</h1>
-                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center">
-                      <i className="fas fa-check-circle mr-1"></i>Verified
-                    </span>
-                  </div>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      className="text-2xl font-bold text-gray-900 mb-2 border rounded px-2 py-1"
+                    />
+                  ) : (
+                    <div className="flex items-center mb-2">
+                      <h1 className="text-2xl font-bold text-gray-900 mr-3">{profileData.name || "N/A"}</h1>
+                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center">
+                        <i className="fas fa-check-circle mr-1"></i>Verified
+                      </span>
+                    </div>
+                  )}
                   <p className="text-gray-500">
                     Member since{" "}
-                    {new Date(profileData?.createdAt || Date.now()).toLocaleString("default", {
+                    {new Date(profileData.createdAt).toLocaleString("default", {
                       month: "long",
                       year: "numeric",
                     })}
                   </p>
                 </div>
-                <button className="rounded-md bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-700">
-                  <i className="fas fa-pen mr-2"></i>Edit Profile
+                <button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="rounded-md bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-700"
+                >
+                  <i className="fas fa-pen mr-2"></i>{isEditing ? "Cancel" : "Edit Profile"}
                 </button>
               </div>
             </div>
@@ -135,64 +204,32 @@ const UserProfile: React.FC = () => {
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Goals</label>
-                    <select
-                      multiple
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      value={profileData?.fitnessProfile.goals || ["Weight Loss", "Muscle Gain"]}
-                    >
-                      {["Weight Loss", "Muscle Gain", "Endurance", "Flexibility"].map((goal) => (
-                        <option key={goal} value={goal}>
-                          {goal}
-                        </option>
-                      ))}
-                    </select>
+                    <p className="text-gray-900">
+                      {profileData.fitnessProfile.goals?.join(", ") || "N/A"}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Fitness Level</label>
-                    <select
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      value={profileData?.fitnessProfile.level || "Intermediate"}
-                    >
-                      {["Beginner", "Intermediate", "Advanced"].map((level) => (
-                        <option key={level} value={level}>
-                          {level}
-                        </option>
-                      ))}
-                    </select>
+                    <p className="text-gray-900">{profileData.fitnessProfile.level || "N/A"}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
-                    <input
-                      type="number"
-                      value={profileData?.fitnessProfile.weight || 65}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      readOnly
-                    />
+                    <p className="text-gray-900">{profileData.fitnessProfile.weight || "N/A"}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
-                    <input
-                      type="number"
-                      value={profileData?.fitnessProfile.height || 170}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      readOnly
-                    />
+                    <p className="text-gray-900">{profileData.fitnessProfile.height || "N/A"}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Daily Calorie Goal</label>
-                    <input
-                      type="number"
-                      value={profileData?.fitnessProfile.calorieGoal || 2000}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      readOnly
-                    />
+                    <p className="text-gray-900">{profileData.fitnessProfile.calorieGoal || "N/A"}</p>
                   </div>
                 </div>
                 <p className="text-sm text-gray-500 mt-4">
                   Last updated:{" "}
-                  {profileData?.fitnessProfile.updatedAt
+                  {profileData.fitnessProfile.updatedAt
                     ? new Date(profileData.fitnessProfile.updatedAt).toLocaleDateString()
-                    : "Not set"}
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -207,7 +244,7 @@ const UserProfile: React.FC = () => {
                   </button>
                 </div>
                 <div className="space-y-4">
-                  {profileData?.progress.length ? (
+                  {profileData.progress.length ? (
                     profileData.progress.slice(0, 1).map((entry, index) => (
                       <div key={index} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-4">
@@ -221,18 +258,18 @@ const UserProfile: React.FC = () => {
                             <p className="font-medium text-gray-900">{entry.totalCaloriesBurned || 0} kcal</p>
                             <div className="flex items-center">
                               <i className="fas fa-fire text-orange-500 mr-1"></i>
-                              <span className="text-sm text-gray-500">{entry.dailyDifficulty || "Medium"}</span>
+                              <span className="text-sm text-gray-500">{entry.dailyDifficulty || "N/A"}</span>
                             </div>
                           </div>
                         </div>
                         <div className="grid grid-cols-4 gap-4 text-sm">
-                          {entry.exercisesCompleted.map((exercise) => (
+                          {entry.exercisesCompleted.map((exercise: { exerciseId: React.Key | null | undefined; name: any; sets: any; reps: any; weight: any; }) => (
                             <div key={exercise.exerciseId} className="bg-gray-50 p-3 rounded">
-                              <p className="font-medium">{exercise.name}</p>
+                              <p className="font-medium">{exercise.name || "N/A"}</p>
                               <p className="text-gray-500">
                                 {exercise.sets && exercise.reps
                                   ? `${exercise.sets} x ${exercise.reps} reps @ ${exercise.weight || 0}kg`
-                                  : "Not specified"}
+                                  : "N/A"}
                               </p>
                             </div>
                           ))}
@@ -257,7 +294,7 @@ const UserProfile: React.FC = () => {
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">Weekly Summary</h2>
                 <div id="weeklyChart" className="h-64"></div>
                 <div className="mt-6 space-y-4">
-                  {profileData?.weeklySummary.length ? (
+                  {profileData.weeklySummary.length ? (
                     profileData.weeklySummary.slice(0, 2).map((summary, index) => (
                       <div
                         key={index}
@@ -271,7 +308,7 @@ const UserProfile: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-gray-500">Total Calories</p>
-                          <p className="font-medium">{summary.totalCaloriesBurned || 0} kcal</p>
+                          <p className="font-medium">{summary.totalCaloriesBurned || "N/A"} kcal</p>
                         </div>
                       </div>
                     ))
@@ -282,7 +319,7 @@ const UserProfile: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-500">Total Calories</p>
-                        <p className="font-medium">0 kcal</p>
+                        <p className="font-medium">N/A</p>
                       </div>
                     </div>
                   )}
@@ -296,10 +333,10 @@ const UserProfile: React.FC = () => {
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">Current Workout Plan</h2>
                 <div className="text-center p-6 border rounded-lg">
                   <h3 className="font-medium text-lg mb-2">
-                    {profileData?.workoutPlanId ? "Custom Plan" : "No Plan Assigned"}
+                    {profileData.workoutPlanId ? "Custom Plan" : "No Plan Assigned"}
                   </h3>
                   <p className="text-gray-500 mb-4">
-                    {profileData?.workoutPlanId
+                    {profileData.workoutPlanId
                       ? "Focus on your goals"
                       : "Assign a plan to get started"}
                   </p>
@@ -314,19 +351,34 @@ const UserProfile: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t shadow-lg">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-500">Last saved 2 minutes ago</p>
-            <div className="space-x-4">
-              <button onClick={()=>{navigate('/')}} className="rounded-md bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-700">
-                Cancel
-              </button>
-              <button className="rounded-md bg-blue-500 px-4 py-2 text-white">Save Changes</button>
+      {isEditing && (
+        <div className="fixed bottom-0 inset-x-0 bg-white border-t shadow-lg">
+          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-500">Editing profile</p>
+              <div className="space-x-4">
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setProfilePicFile(null);
+                    setPreviewUrl(null);
+                    setEditedName(profileData.name || "");
+                  }}
+                  className="rounded-md bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="rounded-md bg-blue-500 px-4 py-2 text-white"
+                >
+                  Save Changes
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

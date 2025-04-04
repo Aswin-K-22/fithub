@@ -3,7 +3,6 @@
 /* eslint-disable no-useless-catch */
 import axios from "axios";
 import { AddTrainerData } from "../../entities/AddTrainerData";
-import { UserProfileData } from "../../entities/User";
 import { TrainerProfileData } from "../../entities/Trainer";
 
 const apiClient = axios.create({
@@ -105,23 +104,34 @@ export const logout = async (email: string) => {
 export const getMe = async () => {
   try {
     const response = await apiClient.get("/auth/user");
-    return { user: response.data.user }; // Normalize to { user: {...} }
+    return { user: response.data.user }; 
   } catch (error) {
     throw error;
   }
 };
 
-export const getUserProfile = async (): Promise<{ user: UserProfileData }> => {
-  const response = await apiClient.get("/api/auth/user");
-  return response.data; 
+export const getUserProfile = async () => {
+  try {
+    const response = await apiClient.get("/auth/user/profile");
+    return response.data;
+  } catch (error) {
+    console.error("Get user profile error:", error);
+    throw error;
+  }
 };
 
-
-export const refreshToken = async () => {
+export const updateUserProfile = async (data: { name?: string; profilePic?: File }) => {
   try {
-    const response = await refreshClient.post("/auth/refresh-token");
-    return response.data; // Expected: new tokens
+    const formData = new FormData();
+    if (data.name) formData.append("name", data.name);
+    if (data.profilePic) formData.append("profilePic", data.profilePic);
+
+    const response = await apiClient.put("/auth/user/profile", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
   } catch (error) {
+    console.error("Update user profile error:", error);
     throw error;
   }
 };

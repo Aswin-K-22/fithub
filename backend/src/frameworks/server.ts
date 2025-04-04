@@ -5,7 +5,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import morgan from "morgan";
-import { signup, login  , verifyOtp ,logout, refreshToken ,resendOtp , getUser ,googleAuth} from "../adapters/controllers/user/authController";
+import { signup, login  , verifyOtp ,logout, refreshToken ,resendOtp , getUser ,googleAuth, forgotPassword, resetPassword, verifyForgotPasswordOtp} from "../adapters/controllers/user/authController";
 import cookieParser from 'cookie-parser'
 import { authMiddleware } from "../adapters/middleware/authMiddleware";
 import { adminLogin } from "../adapters/controllers/admin/adminAuthController";
@@ -55,6 +55,9 @@ app.post("/api/auth/login", login);
 app.post("/api/auth/verify-otp", verifyOtp);
 app.post("/api/auth/google", googleAuth);
 app.post("/api/auth/resend-otp", resendOtp);
+app.post("/api/auth/forgot-password", forgotPassword); 
+app.post("/api/auth/verify-forgot-password-otp", verifyForgotPasswordOtp);
+app.post("/api/auth/reset-password", resetPassword);
 
 
 // Admin Routes

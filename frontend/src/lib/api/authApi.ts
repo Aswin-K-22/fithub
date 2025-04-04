@@ -150,6 +150,39 @@ export const fetchGyms = async (
 };
 
 
+export const forgotPassword = async (email: string) => {
+  try {
+    const response = await apiClient.post("/auth/forgot-password", { email });
+    return response.data;
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    throw error;
+  }
+};
+
+export const resetPassword = async (email: string, otp: string, newPassword: string) => {
+  try {
+    const response = await apiClient.post("/auth/reset-password", { email, otp, newPassword });
+    return response.data;
+  } catch (error) {
+    console.error("Reset password error:", error);
+    throw error;
+  }
+};
+
+
+export const verifyForgotPasswordOtp = async (email: string, otp: string) => {
+  try {
+    const response = await apiClient.post("/auth/verify-forgot-password-otp", { email, otp });
+    return response.data;
+  } catch (error) {
+    console.error("Verify forgot password OTP error:", error);
+    throw error;
+  }
+};
+
+
+////////////////////////////////////////////////////////////////////////////
 // Admin
 export const adminLogin = async (email: string, password: string) => {
   try {

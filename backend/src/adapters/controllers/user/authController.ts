@@ -135,6 +135,7 @@ const registerUser = new RegisterUser(userRepo);
       res.status(400).json({ message: (error as Error).message });
     }
   };
+  
 
 
 
@@ -371,3 +372,122 @@ const registerUser = new RegisterUser(userRepo);
       res.status(500).json({ message: "Google authentication failed" });
     }
   };
+
+
+  export const forgotPassword = async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+  
+      console.log("Forgot password request received for:", email);
+  
+      // Fetch user
+      const user = await userRepo.findByEmail(email);
+      if (!user) {
+        console.log("User not found:", email);
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (!user.isVerified) {
+        console.log("User email not verified:", email);
+        return res.status(400).json({ message: "User email not verified" });
+      }
+  
+      // Generate OTP
+      const otp = generateOtp();
+      console.log(`Generated OTP for ${email}:`, otp);
+  
+      // Store OTP in DB
+      await userRepo.updateOtp(email, otp);
+  
+      // Send OTP Email
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: "FitHub Password Reset OTP",
+          text: `Your OTP to reset your password is ${otp}. It expires in 5 minutes.`,
+        });
+        console.log("OTP email sent successfully to:", email);
+        res.status(200).json({ message: "OTP sent to your email" });
+      } catch (emailError) {
+        console.error("Email send failed:", emailError);
+        res.status(500).json({ message: "Failed to send OTP. Try again later." });
+      }
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  
+
+  export const verifyForgotPasswordOtp = async (req: Request, res: Response) => {
+    try {
+      const { email, otp } = req.body;
+      console.log("Verify Forgot Password OTP:", { email, otp });
+  
+      const user = await userRepo.findByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (user.otp !== otp) {
+        return res.status(400).json({ message: "Invalid OTP" });
+      }
+      if (!user.otpExpires || Date.now() > user.otpExpires.getTime()) {
+        return res.status(400).json({ message: "OTP expired" });
+      }
+  
+      res.status(200).json({ message: "OTP verified successfully" });
+    } catch (error) {
+      console.error("Verify forgot password OTP error:", error);
+      res.status(400).json({ message: (error as Error).message });
+    }
+  };
+
+
+  
+  export const resetPassword = async (req: Request, res: Response) => {
+    try {
+      console.log("Incoming request:", req.body);
+  
+      const { email, otp, newPassword } = req.body;
+      if (!email || !otp || !newPassword) {
+        console.log("Missing required fields:", { email, otp, newPassword });
+        return res.status(400).json({ message: "All fields are required" });
+      }
+  
+      console.log("Fetching user by email:", email);
+      const user = await userRepo.findByEmail(email);
+  
+      if (!user) {
+        console.log("User not found for email:", email);
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      console.log("User found:", user);
+  
+      // if (user.otp !== otp) {
+      //   console.log("Invalid OTP:", { provided: otp, expected: user.otp });
+      //   return res.status(400).json({ message: "Invalid OTP" });
+      // }
+  
+      // if (!user.otpExpires || Date.now() > user.otpExpires.getTime()) {
+      //   console.log("OTP expired:", {
+      //     otpExpires: user.otpExpires,
+      //     currentTime: new Date(),
+      //   });
+      //   return res.status(400).json({ message: "OTP expired" });
+      // }
+  
+      console.log("Updating password for user:", email);
+      await userRepo.updatePassword(email, newPassword);
+  
+      console.log("Password reset successful for:", email);
+      res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  
+
+

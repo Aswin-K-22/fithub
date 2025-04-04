@@ -27,6 +27,8 @@ const Auth: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const query = new URLSearchParams(location.search);
+  const authType = query.get("type") === "signup" ? "signup" : "login";
 
   const [isLogin, setIsLogin] = useState(() => {
     const params = new URLSearchParams(location.search);
@@ -266,21 +268,17 @@ const Auth: React.FC = () => {
                   </div>
                   {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                 </div>
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-600">Remember me</span>
-                  </label>
-                  <a
-                    href="#"
-                    className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                {authType === "login" && (
+                <div className="text-sm text-right">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                    className="text-blue-600 hover:text-blue-700"
                   >
-                    Forgot password?
-                  </a>
+                    Forgot Password?
+                  </button>
                 </div>
+              )}
                 <button
                   type="submit"
                   className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transform hover:scale-[1.02] transition-all duration-200"

@@ -1,3 +1,4 @@
+// frontend/src/App.tsx
 import React, { JSX, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -5,6 +6,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import LandingPage from "./features/landing/pages/LandingPage";
 import Auth from "./features/auth/pages/Auth";
 import VerifyOtp from "./features/auth/pages/VerifyOtp";
+import ForgotPassword from "./features/auth/pages/ForgotPassword"; // New import
+import ResetPassword from "./features/auth/pages/ResetPassword";   // New import
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "./lib/redux/slices/authSlice";
 import { getMe, getTrainerMe } from "./lib/api/authApi";
@@ -33,15 +36,15 @@ const ProtectedRoute: React.FC<{ element: JSX.Element; allowedRoles: string[] }>
   const userRole = user?.role || "";
 
   useEffect(() => {
-    if (!isAuthenticated && !location.pathname.includes("login") && location.pathname !== "/verify-otp") {
+    if (!isAuthenticated && !location.pathname.includes("login") && location.pathname !== "/verify-otp" && !["/forgot-password", "/reset-password"].includes(location.pathname)) {
       if (location.pathname.startsWith("/admin")) {
         navigate("/admin/login", { replace: true, state: { from: location } });
       } else if (location.pathname.startsWith("/trainer")) {
         navigate("/trainer/login", { replace: true, state: { from: location } });
-      } else if (location.pathname !== "/") { 
+      } else if (location.pathname !== "/") {
         navigate("/auth", { replace: true, state: { from: location } });
       }
-    } else if (isAuthenticated && !allowedRoles.includes(userRole) ) {
+    } else if (isAuthenticated && !allowedRoles.includes(userRole)) {
       navigate("/", { replace: true });
     }
   }, [isAuthenticated, userRole, location, navigate, allowedRoles]);
@@ -62,8 +65,10 @@ const App: React.FC = () => {
         location.pathname === "/verify-otp" ||
         location.pathname.includes("google/callback") ||
         location.pathname === "/" ||
-        location.pathname === "/gyms"  ||
-        location.pathname === "/membership"
+        location.pathname === "/gyms" ||
+        location.pathname === "/membership" ||
+        location.pathname === "/forgot-password" || // New condition
+        location.pathname === "/reset-password"     // New condition
       ) {
         console.log("Skipping session check - on auth page or landing page");
         return;
@@ -108,7 +113,7 @@ const App: React.FC = () => {
           navigate("/trainer/login", { replace: true });
         } else if (location.pathname.startsWith("/admin")) {
           navigate("/admin/login", { replace: true });
-        } else if (location.pathname !== "/") { 
+        } else if (location.pathname !== "/") {
           navigate("/auth", { replace: true });
         }
       }
@@ -130,6 +135,8 @@ const App: React.FC = () => {
             <Route path="/profile" element={<ProtectedRoute element={<UserProfile />} allowedRoles={["user"]} />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} /> {/* New route */}
+            <Route path="/reset-password" element={<ResetPassword />} />   {/* New route */}
             <Route path="auth/google/callback" element={<Auth />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/trainer/login" element={<TrainerLogin />} />

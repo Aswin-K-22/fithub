@@ -1,6 +1,7 @@
 // backend/src/adapters/userRepository.ts
 import { Prisma, PrismaClient } from "@prisma/client";
 import { User, UserWithoutSensitiveData } from "../entities/user";
+import * as bcrypt from "bcrypt";
 
 export interface UserRepository {
   findByEmail(email: string): Promise<User | null>;
@@ -11,7 +12,9 @@ export interface UserRepository {
   updateOtp(email: string, otp: string): Promise<void>;
   verifyUser(email: string): Promise<void>;
   updateRefreshToken(email: string, refreshToken: string | null): Promise<void>;
-  toggleUserVerification(id: string): Promise<UserWithoutSensitiveData>; // New method
+  toggleUserVerification(id: string): Promise<UserWithoutSensitiveData>;
+  updatePassword(email: string, password: string): Promise<void>;
+  updateOtpForgotPassword(email: string, password: string): Promise<void>;
 }
 
 export class MongoUserRepository implements UserRepository {
@@ -36,15 +39,42 @@ export class MongoUserRepository implements UserRepository {
   }
 
   async updateOtp(email: string, otp: string): Promise<void> {
-    await this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { email },
       data: { 
         otp, 
         otpExpires: new Date(Date.now() + 30 * 1000),
         isVerified: false, 
       },
+      select: {
+        email: true,
+        otp: true,
+        otpExpires: true,
+      }
     });
+    console.log("Updated OTP details:", updatedUser);
   }
+
+  
+
+  async updateOtpForgotPassword (email: string, otp: string): Promise<void> {
+    const updatedUser = await this.prisma.user.update({
+      where: { email },
+      data: { 
+        otp, 
+        otpExpires: new Date(Date.now() + 5 * 60 * 1000),
+      },
+      select: {
+        email: true,
+        otp: true,
+        otpExpires: true,
+      }
+    });
+  
+    console.log("Updated OTP details:", updatedUser);
+  }
+  
+  
   
   async verifyUser(email: string): Promise<void> {
     await this.prisma.user.update({
@@ -149,5 +179,13 @@ export class MongoUserRepository implements UserRepository {
       membership: updatedUser.memberships[0]?.plan?.name,
       status: updatedUser.memberships[0]?.status,
     };
+  }
+
+  async updatePassword(email: string, password: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await this.prisma.user.update({
+      where: { email },
+      data: { password: hashedPassword, otp: null, otpExpires: null },
+    });
   }
 }

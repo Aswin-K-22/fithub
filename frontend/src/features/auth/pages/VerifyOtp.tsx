@@ -1,8 +1,9 @@
+// frontend/src/features/auth/pages/VerifyOtp.tsx
 import React, { useState, useEffect, FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { login } from "../../../lib/redux/slices/authSlice";
-import { verifyOtp, resendOtp, trainerLoginVerifyOtp, resendTrainerOtp } from "../../../lib/api/authApi";
+import { verifyOtp, resendOtp, trainerLoginVerifyOtp, resendTrainerOtp, verifyForgotPasswordOtp } from "../../../lib/api/authApi";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import { toast } from "react-toastify";
@@ -24,9 +25,8 @@ const VerifyOtp: React.FC = () => {
   useEffect(() => {
     if (!email) {
       toast.error("No email provided—please try again");
-      navigate(purpose === "trainer-login" ? "/trainer/login" : "/auth?type=signup");
+      navigate(purpose === "trainer-login" ? "/trainer/login" : purpose === "forgot-password" ? "/forgot-password" : "/auth?type=signup");
     }
-    console.log("Received state in useEffect:", { email, purpose });
   }, [email, navigate, purpose]);
 
   useEffect(() => {
@@ -52,37 +52,28 @@ const VerifyOtp: React.FC = () => {
       toast.error("Please enter a valid OTP");
       return;
     }
-  
-    console.log("Submitting OTP with purpose:", purpose);
+
     try {
       if (purpose === "signup") {
-        console.log("Calling verifyOtp for signup");
         const { user } = await verifyOtp(email, otp);
-        console.log("Signup user:", user);
         dispatch(login(user));
         toast.success("Verification successful!");
         navigate("/");
       } else if (purpose === "trainer-login") {
-        console.log("Calling trainerLoginVerifyOtp");
-        const { user } = await trainerLoginVerifyOtp(email, otp); // Match backend response
-        console.log("Trainer data:", user);
-        if (user.role !== "trainer") {
-          throw new Error("You are not authorized as a trainer");
-        }
+        const { user } = await trainerLoginVerifyOtp(email, otp);
+        if (user.role !== "trainer") throw new Error("You are not authorized as a trainer");
         dispatch(login(user));
-        console.log("Dispatched login for trainer");
         toast.success("Trainer login successful!");
-        navigate("/trainer/dashboard", { replace: true }); // Use replace to avoid history stack issues
-        console.log("Navigating to /trainer/dashboard");
-      } else {
-        console.log("Fallback case");
-        toast.success("OTP verified successfully!");
-        navigate("/");
+        navigate("/trainer/dashboard", { replace: true });
+      } else if (purpose === "forgot-password") {
+        await verifyForgotPasswordOtp(email, otp)
+        toast.success("OTP verified! Please reset your password.");
+        navigate("/reset-password", { state: { email, otp } });
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
-      console.error("OTP submission error:", axiosError);
       toast.error(axiosError.response?.data?.message || "OTP verification failed");
+      console.error("OTP submission error:", axiosError);
     }
   };
 
@@ -90,11 +81,10 @@ const VerifyOtp: React.FC = () => {
     try {
       if (purpose === "trainer-login") {
         await resendTrainerOtp(email);
-        toast.success("OTP resent to your email!");
       } else {
         await resendOtp(email);
-        toast.success("OTP resent to your email!");
       }
+      toast.success("OTP resent to your email!");
       setTimeLeft(30);
       setCanResend(false);
       setOtp("");
@@ -116,7 +106,7 @@ const VerifyOtp: React.FC = () => {
     <div className="font-inter bg-gray-50">
       <Navbar />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-900 p-6 pt-16">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-300">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
           <div className="flex items-center justify-center p-6 border-b border-gray-200">
             <img
               src="https://ai-public.creatie.ai/gen_page/logo_placeholder.png"
@@ -128,7 +118,7 @@ const VerifyOtp: React.FC = () => {
             <form className="space-y-6" onSubmit={handleOtpSubmit}>
               <div className="text-center">
                 <h1 className="mb-2 text-2xl font-bold text-gray-900">
-                  {purpose === "trainer-login" ? "Trainer Login - Verify OTP" : "Verify Your OTP"}
+                  {purpose === "trainer-login" ? "Trainer Login - Verify OTP" : purpose === "forgot-password" ? "Verify OTP to Reset Password" : "Verify Your OTP"}
                 </h1>
                 <p className="mb-8 text-sm text-gray-600">
                   Enter the 6-digit OTP sent to {email}
@@ -142,9 +132,7 @@ const VerifyOtp: React.FC = () => {
                   renderInput={(props, index) => (
                     <input
                       {...props}
-                      className={`w-12 h-12 min-w-0 text-center text-xl font-semibold border border-gray-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 ${
-                        index < 5 ? "mr-2" : ""
-                      }`}
+                      className={`w-12 h-12 min-w-0 text-center text-xl font-semibold border border-gray-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 ${index < 5 ? "mr-2" : ""}`}
                       style={{ width: "48px" }}
                     />
                   )}
@@ -160,7 +148,7 @@ const VerifyOtp: React.FC = () => {
                 type="submit"
                 className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                Verify & {purpose === "trainer-login" ? "Login" : "Continue"}
+                Verify & {purpose === "trainer-login" ? "Login" : purpose === "forgot-password" ? "Proceed" : "Continue"}
               </button>
               <button
                 type="button"
@@ -172,7 +160,7 @@ const VerifyOtp: React.FC = () => {
               </button>
               <div className="flex flex-col gap-3 text-center text-sm">
                 <button
-                  onClick={() => navigate(purpose === "trainer-login" ? "/trainer/login" : "/auth?type=signup")}
+                  onClick={() => navigate(purpose === "trainer-login" ? "/trainer/login" : purpose === "forgot-password" ? "/forgot-password" : "/auth?type=signup")}
                   className="text-blue-600 hover:text-blue-700"
                 >
                   Change Email

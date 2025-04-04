@@ -4,6 +4,7 @@
 import axios from "axios";
 import { AddTrainerData } from "../../entities/AddTrainerData";
 import { TrainerProfileData } from "../../entities/Trainer";
+import { MembershipPlan } from "../../entities/MembsershipPlan";
 
 const apiClient = axios.create({
   baseURL: "/api",
@@ -192,6 +193,18 @@ export const verifyForgotPasswordOtp = async (email: string, otp: string) => {
 };
 
 
+export const getMembershipPlansUser = async (page: number = 1, limit: number = 3): Promise<{ plans: MembershipPlan[]; total: number }> => {
+  try {
+    const response = await apiClient.get("/user/membership-plans", {
+      params: { page, limit },
+    });
+    return response.data; 
+  } catch (error) {
+    console.error("Error fetching membership plans:", error);
+    throw error;
+  }
+};
+
 ////////////////////////////////////////////////////////////////////////////
 // Admin
 export const adminLogin = async (email: string, password: string) => {
@@ -288,7 +301,7 @@ export const fetchMembershipPlans = async (page: number = 1, limit: number = 10)
     const response = await apiClient.get("/membership-plans", {
       params: { page, limit },
     });
-    return response.data; // Expected: { plans: [...], total, page, pages }
+    return response.data; 
   } catch (error) {
     console.error("Error fetching membership plans:", error);
     throw error;

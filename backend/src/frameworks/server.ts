@@ -20,6 +20,7 @@ import { getGymsForUsers } from "../adapters/controllers/user/GymManagement";
 import { getUserProfile, updateUserProfile } from "../adapters/controllers/user/profileController";
 import { getTrainerProfile, updateTrainerProfile } from "../adapters/controllers/trainer/trainerProfileController";
 import { addMembershipPlan, getMembershipPlans } from "../adapters/controllers/admin/membershipController";
+import { getMembershipPlansForUsers } from "../adapters/controllers/user/membershipController";
 
 const app = express();
 const httpServer = createServer(app);
@@ -49,7 +50,7 @@ app.get("/api/user/gyms", getGymsForUsers);
 app.put("/api/auth/user/profile", authMiddleware, upload.single("profilePic"), updateUserProfile);
 app.get("/api/auth/user/profile", authMiddleware, getUserProfile);
 
-app.get("/api/membership-plans", getMembershipPlans);
+app.get("/api/user/membership-plans", getMembershipPlansForUsers);
 
 // Routes (without authentication)
 app.post("/api/auth/signup", signup);

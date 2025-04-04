@@ -315,64 +315,89 @@ const registerUser = new RegisterUser(userRepo);
     }
   }
 
-  export const googleAuth = async (req: Request, res: Response) => {
-    try {
-      const { code } = req.body;
-      if (!code) {
-        res.status(400).json({ message: "No authorization code provided" });
-        return;
-      }
-  
-      const { tokens } = await client.getToken({
-        code,
-        redirect_uri: process.env.GOOGLE_CALLBACK_URL, 
-      });
-      console.log("Tokens received from Google:", tokens);
-  
-      if (!tokens.id_token) {
-        throw new Error("No ID token received from Google");
-      }
-
-      console.log("GOOGLE_CLIENT_ID from env:", process.env.GOOGLE_CLIENT_ID);
-      const ticket : LoginTicket= await client.verifyIdToken({
-        idToken: tokens.id_token,
-        audience: process.env.GOOGLE_CLIENT_ID, 
-      });
-  
-      const payload = ticket.getPayload();
-      console.log("Token payload:", payload); 
-      if (!payload || !payload.email) {
-        res.status(400).json({ message: "Invalid Google token: Email is missing" });
-        return;
-      }
-  
-      let user = await userRepo.findByEmail(payload.email);
-      if (!user) {
-        user = await registerUser.execute(payload.name || "Google User", payload.email, "" ,true);
-      }
-  
-      const accessToken = generateAccessToken({ email: user.email, id: user.id });
-      const refreshToken = generateRefreshToken({ email: user.email, id: user.id });
-      await userRepo.updateRefreshToken(user.email, refreshToken);
-  
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 15 * 60 * 1000,
-      });
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-  
-      res.status(200).json({ user: { id: user.id, email: user.email, name: user.name ,role :user.role} });
-    } catch (error) {
-      console.error("Google Auth Error:", error);
-      res.status(500).json({ message: "Google authentication failed" });
+export const googleAuth = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body;
+    console.log("Received code:", code);
+    if (!code) {
+      console.log("No code provided in request body");
+      return res.status(400).json({ message: "No authorization code provided" });
     }
-  };
 
+    console.log("Requesting tokens with redirect_uri:", process.env.GOOGLE_CALLBACK_URL);
+    const { tokens } = await client.getToken({
+      code,
+      redirect_uri: process.env.GOOGLE_CALLBACK_URL,
+    });
+    console.log("Tokens received from Google:", tokens);
+
+    if (!tokens.id_token) {
+      console.log("Missing id_token in tokens response");
+      throw new Error("No ID token received from Google");
+    }
+
+    console.log("Verifying ID token with audience:", process.env.GOOGLE_CLIENT_ID);
+    const ticket: LoginTicket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    console.log("Token payload:", payload);
+    if (!payload || !payload.email) {
+      console.log("Invalid payload or missing email:", payload);
+      return res.status(400).json({ message: "Invalid Google token: Email is missing" });
+    }
+
+    console.log("Looking up user by email:", payload.email);
+    let user = await userRepo.findByEmail(payload.email);
+
+    if (!user) {
+      console.log("User not found, attempting to register new user with email:", payload.email);
+      try {
+        user = await registerUser.execute(payload.name || "Google User", payload.email, "", true);
+        console.log("New user registered:", user);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("Unique constraint failed")) {
+          console.log("Race condition detected, retrying to find user:", payload.email);
+          user = await userRepo.findByEmail(payload.email);
+          if (!user) {
+            console.error("User still not found after race condition:", payload.email);
+            throw new Error("Failed to register or retrieve user");
+          }
+        } else {
+          throw error;
+        }
+      }
+    } else {
+      console.log("Existing user found:", user);
+    }
+
+    console.log("Generating access and refresh tokens for user:", user.email);
+    const accessToken = generateAccessToken({ email: user.email, id: user.id });
+    const refreshToken = generateRefreshToken({ email: user.email, id: user.id });
+    await userRepo.updateRefreshToken(user.email, refreshToken);
+    console.log("Tokens generated - Access:", accessToken, "Refresh:", refreshToken);
+
+    console.log("Setting cookies...");
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 15 * 60 * 1000,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    console.log("Sending response with user:", { id: user.id, email: user.email, name: user.name, role: user.role });
+    res.status(200).json({ user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+  } catch (error) {
+    console.error("Google Auth Error:", error);
+    res.status(500).json({ message: "Google authentication failed" });
+  }
+};
 
   export const forgotPassword = async (req: Request, res: Response) => {
     try {

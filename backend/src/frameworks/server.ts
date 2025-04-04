@@ -75,7 +75,7 @@ app.put("/api/admin/users/:id/toggle-verification", adminAuthMiddleware, toggleU
 
 app.post("/api/auth/trainer/login", trainerLogin);
 app.post("/api/auth/trainer/verify-otp", verifyTrainerOtp);
-app.post("/api/auth/trainer/logout", trainerAuthMiddleware, trainerLogout);
+app.post("/api/auth/trainer/logout", trainerLogout);
 app.post("/api/auth/trainer/resend-otp", resendTrainerOtp);
 
 // Protected Routes (require auth)

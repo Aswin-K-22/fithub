@@ -29,11 +29,8 @@ const Auth: React.FC = () => {
   const dispatch = useDispatch();
   const query = new URLSearchParams(location.search);
   const authType = query.get("type") === "signup" ? "signup" : "login";
-
-  const [isLogin, setIsLogin] = useState(() => {
-    const params = new URLSearchParams(location.search);
-    return params.get("type") !== "signup";
-  });
+  const [isLogin, setIsLogin] = useState(authType !== "signup");
+  const [hasProcessedCallback, setHasProcessedCallback] = useState(false); // New state to prevent duplicate calls
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
@@ -69,13 +66,14 @@ const Auth: React.FC = () => {
     setIsLogin(params.get("type") !== "signup");
     const code = params.get("code");
 
-    if (location.pathname.includes("google/callback") && code) {
-      console.log("Received code:", code);
+    if (location.pathname.includes("google/callback") && code && !hasProcessedCallback) {
+      console.log("Processing Google callback with code:", code);
+      setHasProcessedCallback(true); 
       handleGoogleCallback(code);
     } else if (!code) {
       console.log("No code found in URL:", location.search);
     }
-  }, [location.search, location.pathname, handleGoogleCallback]);
+  }, [location.pathname, location.search, handleGoogleCallback, hasProcessedCallback]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -182,7 +180,7 @@ const Auth: React.FC = () => {
   const handleGoogleLogin = useCallback(() => {
     console.log("Google login initiated");
     const googleWindow = window as unknown as GoogleWindow;
-  
+
     if (googleWindow.google && googleWindow.google.accounts) {
       googleWindow.google.accounts.oauth2
         .initCodeClient({
@@ -199,6 +197,7 @@ const Auth: React.FC = () => {
   }, []);
 
   return (
+    
     <div className="font-inter bg-gray-50">
       <Navbar />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-900 p-6 pt-16">
